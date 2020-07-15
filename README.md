@@ -1,2 +1,15 @@
 # nvim-rgflow.lua
-Help you get in the flow with ripgrep in Neovim
+
+
+## Installation
+Plug 'michael-angelozzi/nvim-rgflow.lua'
+
+## Customize
+
+## Contributing
+PR's are welcome!
+
+## License
+
+Copyright (c) Michael Angelozzi.  Distributed under the same terms as Neovim
+itself. See `:help license`.
