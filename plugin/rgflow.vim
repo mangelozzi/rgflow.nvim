@@ -1,5 +1,6 @@
 " nvim-rgflow.lua Plugin
-
+" TODO check :h <f-args> maybe usefull for command history
+"
 " Testing variable ensures the module and settings are reloaded when ever
 " the affected files are sourced.
 let testing = 1
@@ -23,16 +24,16 @@ endif
 if !hlexists('RgFlowInputBg') || testing
     " Even though just a background, add the foreground or else when
     " appending cant see the insert cursor
-    hi RgFlowInputBg      guifg=black   guibg=white ctermfg=0 ctermbg=15
+    hi RgFlowInputBg      guifg=black   guibg=#e0e0e0 ctermfg=0 ctermbg=254
 endif
 if !hlexists('RgFlowInputFlags') || testing
-    hi RgFlowInputFlags   guifg=gray    guibg=white ctermfg=8 ctermbg=15
+    hi RgFlowInputFlags   guifg=gray    guibg=#e0e0e0 ctermfg=8 ctermbg=254
 endif
 if !hlexists('RgFlowInputPattern') || testing
-    hi RgFlowInputPattern guifg=green   guibg=white gui=bold ctermfg=2 ctermbg=15 cterm=bold
+    hi RgFlowInputPattern guifg=green   guibg=#e0e0e0 gui=bold ctermfg=2 ctermbg=254 cterm=bold
 endif
 if !hlexists('RgFlowInputPath') || testing
-    hi RgFlowInputPath    guifg=black   guibg=white ctermfg=0 ctermbg=15
+    hi RgFlowInputPath    guifg=black   guibg=#e0e0e0 ctermfg=0 ctermbg=254
 endif
 
 " DEFAULT SETTINGS
@@ -40,7 +41,7 @@ if testing
     " When testing, wish to reload lua files, and reset global values
     let g:rgflow_search_keymaps = 1
     let g:rgflow_qf_keymaps = 1
-    let g:rgflow_flags = '--smart-case --glob=!spike/*'
+    let g:rgflow_flags = "--smart-case -g *.{*,py} -g !*{min.js,pyc} -g !spike/*"
     let g:rgflow_set_incsearch = 0
     let g:rgflow_mark_str = "▌"
     let g:rgflow_open_qf_list = 1
@@ -54,7 +55,9 @@ else
     let g:rgflow_qf_keymaps = get(g:, 'rgflow_qf_keymaps', 1)
 
     " For some reason --no-messages makes it stop working
-    let g:rgflow_flags = get(g:, 'rgflow_flags', '--smart-case --glob=!spike/*')
+    " No need to escape globs, e.g. '*.py' as the plugin will escape each item
+    " seprated by a space
+    let g:rgflow_flags = get(g:, 'rgflow_flags', "--smart-case -g *.{*,py} -g !*{min.js,pyc} -g !spike/*")
 
     " After a search, whether to set incsearch to be the pattern searched for
     let g:rgflow_set_incsearch = get(g:, 'rgflow_set_incsearch', 1)
@@ -68,11 +71,7 @@ endif
 
 " SOURCE MODULE
 if testing
-    if has('unix')
-        lua rgflow = dofile("/home/michael/.config/nvim/nvim-rgflow.lua/lua/rgflow.lua")
-    else
-        lua rgflow = dofile("C:/Users/Michael/.config/nvim/nvim-rgflow.lua/lua/rgflow.lua")
-    endif
+    lua rgflow = dofile('/home/michael/.config/nvim/tmp/nvim-rgflow.lua/lua/rgflow.lua')
 else
     lua rgflow = require('rgflow')
 endif
@@ -91,6 +90,8 @@ if g:rgflow_search_keymaps
     " KEY MAPPINGS
     " Rip grep in files, use <cword> under the cursor as starting point
     nnoremap <leader>rg :<C-U>lua rgflow.start_via_hotkey('n')<CR>
+    " Start and paste contents of search register
+    nnoremap <leader>rr :<C-U>lua rgflow.start_via_hotkey('n')<CR>0D"/p
     " Rip grep in files, use visual selection as starting point
     xnoremap <leader>rg :<C-U>call v:lua.rgflow.start_via_hotkey(visualmode())<Cr>
 endif

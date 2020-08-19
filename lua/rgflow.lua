@@ -4,7 +4,7 @@
 --------------------
 -- rgflow.start_via_hotkey()
 --   or
--- rgflow.start_via_history()
+-- rgflow.start_with_args()
 --   then -> start_ui() -> wait for <CR> or <ESC>
 --
 -- If <ESC> then -> rgflow.abort()
@@ -465,7 +465,7 @@ function rgflow.search()
     -- api.nvim_win_close(rgflow.winh, true)
 
     -- Add a command to the history which can be invoked to repeat this search
-    local rg_cmd = ':lua rgflow.start_via_history([['..flags..']], [['..pattern..']], [['..path..']])'
+    local rg_cmd = ':lua rgflow.start_with_args([['..flags..']], [['..pattern..']], [['..path..']])'
     vim.fn.histadd('cmd', rg_cmd)
 
     -- Global config used by the async job
@@ -525,6 +525,10 @@ local function start_ui(flags, pattern, path)
     vim.fn.matchaddpos('RgFlowInputPath',    {3}, 0, -1, {window=wini})
     -- Position the cursor after the pattern
     api.nvim_win_set_cursor(wini, {2, string.len(pattern)})
+    -- If the pattern is blank, enter insert mode
+    if string.len(pattern) == 0 then
+        api.nvim_command("startinsert")
+    end
 
     -- Setup Heading window
     -----------------------
@@ -549,7 +553,7 @@ end
 -- Begins Rgflow search via the command search history, ie. q:
 -- @param flags/pattern/path are saved in the command history, and then passed
 --        into this function.
-function rgflow.start_via_history(flags, pattern, path)
+function rgflow.start_with_args(flags, pattern, path)
     -- If called from the command history, for example by c_^F or q:
     rgflow.buf, rgflow.wini, rgflow.winh = start_ui(flags, pattern, path)
 end
