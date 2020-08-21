@@ -3,7 +3,7 @@
 "
 " Testing variable ensures the module and settings are reloaded when ever
 " the affected files are sourced.
-let testing = 1
+let testing = 0
 
 " When not testing, dont use cached setup
 if exists('g:loaded_rgflow') && !testing

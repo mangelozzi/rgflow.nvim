@@ -1,8 +1,17 @@
 # nvim-rgflow.lua
 
+Work in progress. Just need to clean up and write docs/readme/screenies. Refer to docs/
+
+- 
+- I can never remember include/exclude globs, this helps.
+- Autocomplete args.
 
 ## Installation
-Plug 'michael-angelozzi/nvim-rgflow.lua'
+
+With `Vim-Plug':
+```
+:Plug 'mangelozzi/nvim-rgflow.lua'
+```
 
 ## Customize
 
