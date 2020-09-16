@@ -1,3 +1,5 @@
+
+
 " Map <CR> to start search in normal mode
 nnoremap <buffer> <CR> <cmd>lua rgflow.search()<CR>
 

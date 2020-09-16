@@ -19,6 +19,10 @@
 -- function with visualmode() as this argument.
 -- @param err and data - refer to https://github.com/luvit/luv/blob/master/docs.md#uvspawnpath-options-on_exit
 
+-- Helpful
+-- -------
+-- To see contents of a table use: print(vim.inspect(table))
+--
 --[[
 TODO
 cdo / cfdo update
@@ -245,9 +249,15 @@ function rgflow.hl_qf_matches()
     -- Called via the ftplugin mechanism.
     local win = vim.fn.getqflist({winid=1}).winid
 
+    -- If the size of qf_list is zero, then return
+    local qf_list = vim.fn.getqflist({id=0, items=0}).items
+    if #qf_list == 0 then
+        return
+    end
+
     -- Get the first qf line and check it has rgflow highlighting markers, if
     -- not then return immediately.
-    local first_qf_line = vim.fn.getqflist({id=0, items=0}).items[1].text
+    local first_qf_line = qf_list[1].text
     api.nvim_command("messages clear")
     if not string.find(first_qf_line, zs_ze) then
         -- First line does not have a zs_ze tag, so quicklist not from rgflow.
@@ -290,10 +300,16 @@ end
 
 --- Schedules a message in the event loop to print.
 -- @param msg - The message to print
-local function schedule_print(msg)
+local function schedule_print(msg, echom)
     local msg = msg
     local timer = loop.new_timer()
-    timer:start(100,0,vim.schedule_wrap(function() print(msg) end))
+    local cmd
+    if echom then
+        cmd = "echom '"..msg.."'"
+    else
+        cmd = "echo '"..msg.."'"
+    end
+    timer:start(100,0,vim.schedule_wrap(function() vim.api.nvim_command(cmd) end))
 end
 
 
@@ -316,7 +332,7 @@ end
 local function on_stdout(err, data)
     if err then
         config.error_cnt = config.error_cnt + 1
-        schedule_print("ERROR: "..vim.inspect(err).." >>> "..vim.inspect(data))
+        schedule_print("ERROR: "..vim.inspect(err).." >>> "..vim.inspect(data), true)
     end
     if data then
         local vals = vim.split(data, "\n")
@@ -330,7 +346,7 @@ local function on_stdout(err, data)
         end
         local plural = "s"
         if config.match_cnt == 1 then plural = "" end
-        schedule_print("Found "..config.match_cnt.." result"..plural.." ... ")
+        schedule_print("Found "..config.match_cnt.." result"..plural.." ... ", false)
     end
 end
 
@@ -367,7 +383,7 @@ local function on_exit()
     else
         msg = msg.." ░ "..config.demo_cmd
     end
-    schedule_print(msg)
+    schedule_print(msg, true)
 end
 
 
