@@ -1,7 +1,7 @@
 
 
 " Map <CR> to start search in normal mode
-nnoremap <buffer> <CR> <cmd>lua rgflow.search()<CR>
+noremap <buffer> <CR> <cmd>lua rgflow.search()<CR>
 
 " Map various abort like keys to cancel search
 noremap <buffer> <ESC> <cmd>lua rgflow.abort()<CR>
@@ -15,9 +15,10 @@ inoremap <buffer> <TAB> <cmd>lua rgflow.complete()<CR>
 " to make it easier to work with the 3 lines of input
 
 " If pop up menu visible, map <CR> to select autocomplete option, else if
-" there are not enough lines <CR> works, else map to <DOWN>
+" there are not enough lines <CR> inserts a new line, else map to start
+" search.
 " <CR> is used within mapping, so must be none recursive.
-inoremap <buffer> <expr> <CR> (pumvisible() ? '<C-Y>' : (line('$') < 3 ? '<CR>' : '<DOWN>'))
+inoremap <buffer> <expr> <CR> (pumvisible() ? '<C-Y>' : (line('$') < 3 ? '<CR>' : '<Esc>:lua rgflow.search()<CR>'))
 
 " Disable alternate buffer (because can't switch back afterwards)
 nnoremap <buffer> <C-^>   <NOP>
