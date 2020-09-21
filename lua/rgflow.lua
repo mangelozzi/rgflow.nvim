@@ -258,23 +258,38 @@ function rgflow.hl_qf_matches()
     -- Get the first qf line and check it has rgflow highlighting markers, if
     -- not then return immediately.
     local first_qf_line = qf_list[1].text
-    api.nvim_command("messages clear")
+    -- api.nvim_command("messages clear")
+
     if not string.find(first_qf_line, zs_ze) then
         -- First line does not have a zs_ze tag, so quicklist not from rgflow.
         return
     end
 
-    -- Clear matches only affects the current window
-    vim.fn.clearmatches(win)
+    -- Get a list of previous matches that were added to this window.
+    local ok, rgflow_matches = pcall(function() return api.nvim_win_get_var(win, 'rgflow_matches') end)
+    -- If therer is an error (no matches have been set yet), then use an empty list.
+    if not ok then rgflow_matches = {} end
+
+    -- For each existing match, delete the match
+    for k, id in pairs(rgflow_matches) do
+        vim.fn.matchdelete(id, win)
+    end
+    rgflow_matches = {}
+    local id
 
     -- Set char ASCII value 30 (<C-^>),"record separator" as invisible char around the pattern matches
     -- Conceal options set in ftplugin
-    vim.fn.matchadd("Conceal", zs_ze, 12, -1, {conceal="", window=win})
+    id = vim.fn.matchadd("Conceal", zs_ze, 12, -1, {conceal="", window=win})
+    table.insert(rgflow_matches, id)
 
     -- Highlight the matches between the invisible chars
     -- \{-n,} means match at least n chars, none greedy version
     -- priority 0, so that incsearch at priority 1 takes preference
-    vim.fn.matchadd("RgFlowQfPattern", zs_ze..".\\{-1,}"..zs_ze, 0, -1, {window=win})
+    id = vim.fn.matchadd("RgFlowQfPattern", zs_ze..".\\{-1,}"..zs_ze, 0, -1, {window=win})
+    table.insert(rgflow_matches, id)
+
+    -- Store the matches as a window local list, so they can be deleted next time.
+    api.nvim_win_set_var(win, 'rgflow_matches', rgflow_matches)
 end
 
 
