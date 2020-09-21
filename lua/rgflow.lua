@@ -378,6 +378,11 @@ local function on_exit()
 
         if api.nvim_get_var('rgflow_open_qf_list') ~= 0 then
             api.nvim_command('copen')
+            local height = config.match_cnt
+            local max = api.nvim_get_var('rgflow_qf_max_height')
+            if height > max then height = max end
+            if height < 3 then height = 3 end
+            api.nvim_command(height..'wincmd _')
         end
 
         -- Remember 0 is considered true in lua

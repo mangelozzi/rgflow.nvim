@@ -67,6 +67,10 @@ else
 
     " Open the quickfix window automatically after a serach
     let g:rgflow_open_qf_list = get(g:, 'rgflow_open_qf_list', 1)
+
+    " The QF window is set to the height of the number of matches, but bounded
+    " to be between a min of 3 and a max of this variable:
+    let g:rgflow_qf_max_height = get(g:, 'rgflow_qf_max_height', 7)
 endif
 
 " SOURCE MODULE
