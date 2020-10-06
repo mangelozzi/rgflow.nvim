@@ -10,6 +10,8 @@ noremap <buffer> <C-C> <cmd>lua rgflow.abort()<CR>
 
 " Map tab to be general autocomplete flags/buffer/file depending on which line user is on
 inoremap <buffer> <TAB> <cmd>lua rgflow.complete()<CR>
+inoremap <buffer> <C-N> <cmd>lua rgflow.complete()<CR>
+inoremap <buffer> <C-P> <cmd>lua rgflow.complete()<CR>
 
 " The following mappings are convience when working with the input dialogue,
 " to make it easier to work with the 3 lines of input

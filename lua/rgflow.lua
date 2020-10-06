@@ -25,6 +25,10 @@
 --
 --[[
 TODO
+- Before opening an new rgflow window, check if one is already open
+- Investigate &buftype = prompt
+= remove invisible markers, and save location in a list, so one can search
+  in the quick fix list and not get surprising results.
 cdo / cfdo update
 https://github.com/thinca/vim-qfreplace/blob/master/autoload/qfreplace.vim
 -> not easy in rgflow type window, disable undo passed certain point
@@ -36,6 +40,8 @@ suggested word, refer to:
 :h previewheight
 :h completeopt
 
+hotkeys:
+    CTRL+N or CTRL+P or TAB triggers line appropiate auto complete
 --]]
 
 
@@ -382,7 +388,8 @@ local function on_exit()
             local max = api.nvim_get_var('rgflow_qf_max_height')
             if height > max then height = max end
             if height < 3 then height = 3 end
-            api.nvim_command(height..'wincmd _')
+            local win = vim.fn.getqflist({winid=1}).winid
+            api.nvim_win_set_height(win, height)
         end
 
         -- Remember 0 is considered true in lua
@@ -397,11 +404,12 @@ local function on_exit()
         -- is opened.
     end
     -- Print exit message
-    local msg = config.pattern.." ░ "..config.match_cnt.." result"..(config.match_cnt==1 and '' or 's')
+    local msg = " "..config.pattern.." │ "..config.match_cnt.." result"..(config.match_cnt==1 and '' or 's')
     if config.error_cnt > 0 then
         msg = msg.." ("..config.error_cnt.." errors)"
     else
-        msg = msg.." ░ "..config.demo_cmd
+        -- msg = msg.." │ "..config.demo_cmd
+        msg = msg.." │ "..config.path
     end
     schedule_print(msg, true)
 end
