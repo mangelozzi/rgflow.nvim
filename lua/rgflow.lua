@@ -25,6 +25,7 @@
 --
 --[[
 TODO
+- When altering color palette (Alt-1 ALT-2) it messes up the color highlighting (match add in setup windows)
 - Before opening an new rgflow window, check if one is already open
 - Investigate &buftype = prompt
 = remove invisible markers, and save location in a list, so one can search
@@ -155,6 +156,7 @@ function rgflow.qf_del_operator(mode)
     for i=1,count,1 do
         table.remove(qf_list, startl)
     end
+    -- Don't create a new qf list, so use 'r'. Applies to colder/cnewer etc.
     vim.fn.setqflist(qf_list, 'r')
     vim.fn.winrestview(win_pos)
 end
@@ -182,6 +184,7 @@ function rgflow.qf_mark_operator(add_not_remove, mode)
             qf_list[i]['text'] = string.gsub(qf_list[i]['text'], "^(%s*)"..mark, "%1", 1)
         end
     end
+    -- Don't create a new qf list, so use 'r'. Applies to colder/cnewer etc.
     vim.fn.setqflist(qf_list, 'r')
     vim.fn.winrestview(win_pos)
 end
@@ -380,7 +383,9 @@ local function on_exit()
         print("Adding "..config.match_cnt.." result"..plural.." to the quickfix list...")
         api.nvim_command('redraw!')
 
-        vim.fn.setqflist({}, 'r', {title=config.title, lines=config.results})
+        -- Create a new qf list, so use ' '. Applies to colder/cnewer etc.
+        -- Refer to `:help setqflist`
+        vim.fn.setqflist({}, ' ', {title=config.title, lines=config.results})
 
         if api.nvim_get_var('rgflow_open_qf_list') ~= 0 then
             api.nvim_command('copen')
