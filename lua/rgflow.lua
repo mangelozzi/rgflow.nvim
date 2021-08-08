@@ -427,7 +427,9 @@ local function spawn_job()
     local stdout = loop.new_pipe(false)
     local stderr = loop.new_pipe(false)
 
-    print("Rgflow start search for:  "..config.pattern.."  with  "..config.demo_cmd)
+    print("Rgflow start search for:  "..config.pattern)
+    -- Append the following makes it too long (results in one having to press enter)
+    -- .."  with  "..config.demo_cmd)
 
     -- https://github.com/luvit/luv/blob/master/docs.md#uvspawnpath-options-on_exit
     handle = loop.spawn('rg', {

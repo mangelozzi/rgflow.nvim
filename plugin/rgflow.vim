@@ -41,7 +41,7 @@ if testing
     " When testing, wish to reload lua files, and reset global values
     let g:rgflow_search_keymaps = 1
     let g:rgflow_qf_keymaps = 1
-    let g:rgflow_flags = "--smart-case -g *.{*,py} -g !*{min.js,pyc} -g !spike/* --fixed-strings --no-fixed-strings --no-ignore --ignore -M 200"
+    let g:rgflow_flags = "--smart-case -g *{*,py} -g !*{min.js,pyc} -g !spike/* --fixed-strings --no-fixed-strings --no-ignore --ignore -M 200"
     let g:rgflow_set_incsearch = 0
     let g:rgflow_mark_str = "▌"
     let g:rgflow_open_qf_list = 1
@@ -57,7 +57,7 @@ else
     " For some reason --no-messages makes it stop working
     " No need to escape globs, e.g. '*.py' as the plugin will escape each item
     " seprated by a space
-    let g:rgflow_flags = get(g:, 'rgflow_flags', "--smart-case -g *.{*,py} -g !*{min.js,pyc} -g !spike/* --fixed-strings --no-fixed-strings --no-ignore --ignore -M 200")
+    let g:rgflow_flags = get(g:, 'rgflow_flags', "--smart-case -g *{*,py} -g !*{min.js,pyc} -g !spike/* --fixed-strings --no-fixed-strings --no-ignore --ignore -M 200")
 
     " After a search, whether to set incsearch to be the pattern searched for
     let g:rgflow_set_incsearch = get(g:, 'rgflow_set_incsearch', 1)
