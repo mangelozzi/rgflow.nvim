@@ -1,29 +1,32 @@
--- nvim-rgflow.lua Plugin
---
--- PROGRAM EXECUTION
---------------------
--- rgflow.start_via_hotkey()
---   or
--- rgflow.start_with_args()
---   then -> start_ui() -> wait for <CR> or <ESC>
---
--- If <ESC> then -> rgflow.abort()
--- If <CR>  then -> rgflow.start() -> get_config()
---                                 -> spawn_job -> on_stdout()
---                                 -> on_stderr()
---                                 -> on_exit()
---
--- COMMON ARGUMENTS
--- ----------------
--- @param mode - The vim mode, eg. "n", "v", "V", "^V", recommend calling this
--- function with visualmode() as this argument.
--- @param err and data - refer to https://github.com/luvit/luv/blob/master/docs.md#uvspawnpath-options-on_exit
-
--- Helpful
--- -------
--- To see contents of a table use: print(vim.inspect(table))
---
 --[[
+nvim-rgflow.lua Plugin
+
+PROGRAM EXECUTION
+-----------------
+rgflow.start_via_hotkey()
+  or
+rgflow.start_with_args()
+  then -> start_ui() -> wait for <CR> or <ESC>
+
+If <ESC> then -> rgflow.abort()
+If <CR>  then -> rgflow.start() -> get_config()
+                                -> spawn_job -> on_stdout()
+                                -> on_stderr()
+                                -> on_exit()
+
+Neovim 0.10 uses Lua 5.1, can ignore the unpack warnings
+:lua print (_VERSION) -- prints Lua 5.1
+
+COMMON ARGUMENTS
+----------------
+@param mode - The vim mode, eg. "n", "v", "V", "^V", recommend calling this
+function with visualmode() as this argument.
+@param err and data - refer to https://github.com/luvit/luv/blob/master/docs.md#uvspawnpath-options-on_exit
+
+Helpful
+-------
+To see contents of a table use: vim.print(table)
+
 TODO
 - When altering color palette (Alt-1 ALT-2) it messes up the color highlighting (match add in setup windows)
 - Before opening an new rgflow window, check if one is already open
@@ -47,10 +50,10 @@ hotkeys:
 
 
 local api = vim.api
-local loop = vim.loop
+local uv = vim.loop
 local zs_ze = "\30"  -- The start and end of pattern match invisible marker
-rgflow = {}
-
+local rgflow = {}
+local config = {}
 
 --- Prints a @msg to the command line with error highlighting.
 -- Does not raise an error.
@@ -85,8 +88,8 @@ local function get_line_range(mode)
     -- nvim_buf_get_mark({buffer}, {name})
     local startl, endl
     if mode == 'v' or mode=='V' or mode=='\22' then
-        startl = unpack(api.nvim_buf_get_mark(0, "<"))
-        endl   = unpack(api.nvim_buf_get_mark(0, ">"))
+        startl = api.nvim_buf_get_mark(0, "<")[1]
+        endl   = api.nvim_buf_get_mark(0, ">")[1]
     else
         startl = vim.fn.line('.')
         endl = vim.v.count1 + startl - 1
@@ -169,7 +172,7 @@ function rgflow.qf_mark_operator(add_not_remove, mode)
     -- Only operates linewise, since 1 Quickfix entry is tied to 1 line.
     local win_pos = vim.fn.winsaveview()
     local startl, endl = get_line_range(mode)
-    local count = endl-startl + 1
+    -- local count = endl-startl + 1
     local qf_list = vim.fn.getqflist()
     local mark = api.nvim_get_var('rgflow_mark_str')
 
@@ -234,8 +237,8 @@ end
 function rgflow.flags_complete(findstart, base)
     if findstart == 1 then
         local pos = api.nvim_win_get_cursor(0)
-        row = pos[1]
-        col = pos[2]
+        local row = pos[1]
+        local col = pos[2]
         local line = api.nvim_buf_get_lines(0,row-1,row, false)[1]
         local s = ''
         for i=col,1,-1 do
@@ -326,7 +329,7 @@ end
 -- @param msg - The message to print
 local function schedule_print(msg, echom)
     local msg = msg
-    local timer = loop.new_timer()
+    local timer = uv.new_timer()
     local cmd
     if echom then
         cmd = "echom '"..msg.."'"
@@ -344,7 +347,7 @@ local function on_stderr(err, data)
     -- err always seems to be nil, and data has the error message
     if not err and not data then return end
     config.error_cnt = config.error_cnt + 1
-    local timer = loop.new_timer()
+    local timer = uv.new_timer()
     timer:start(100,0,vim.schedule_wrap(function()
         api.nvim_command('echoerr "'..data..'"')
     end))
@@ -375,20 +378,42 @@ local function on_stdout(err, data)
 end
 
 
---- The handler for when the spawned job exits
-local function on_exit()
-    if config.match_cnt > 0 then
-        local plural = "s"
-        if config.match_cnt == 1 then plural = "" end
-        print("Adding "..config.match_cnt.." result"..plural.." to the quickfix list...")
-        api.nvim_command('redraw!')
+-- Since adding a lot of items to the quickfix window blocks the editor
+-- Add a few then defer, continue
+local currentIdx = 1
+local chunkSize = 1000
+local linesAdded = 0
 
+local function processChunk()
+    local endIndex = math.min(currentIdx + chunkSize - 1, #config.results)
+    local chunkRows = {unpack(config.results, currentIdx, endIndex)}
+
+    local title="  "..config.pattern.." (".. #config.results .. ")   "..config.path
+    vim.fn.setqflist({}, 'a', {title = title, lines = chunkRows})
+
+    if currentIdx <= #config.results then
+        currentIdx = endIndex + 1
+        linesAdded = linesAdded  + #chunkRows
+        print('Adding ... ' .. linesAdded .. ' of ' .. #config.results)
+        vim.defer_fn(processChunk, 0)
+    else 
+        print("Added "..config.match_cnt.." ... done")
+    end
+end
+
+local function populate_qf_with_results()
         -- Create a new qf list, so use ' '. Applies to colder/cnewer etc.
         -- Refer to `:help setqflist`
-        vim.fn.setqflist({}, ' ', {title=config.title, lines=config.results})
+
+        if config.match_cnt > 1 then
+            api.nvim_command('copen')
+        end
+
+        --- vim.fn.setqflist({}, ' ', {title=config.title, lines=config.results})
+        linesAdded = 0
+        processChunk(config)
 
         if api.nvim_get_var('rgflow_open_qf_list') ~= 0 then
-            api.nvim_command('copen')
             local height = config.match_cnt
             local max = api.nvim_get_var('rgflow_qf_max_height')
             if height > max then height = max end
@@ -404,9 +429,21 @@ local function on_exit()
             -- Trigger the highlighting of search by turning hl on
             api.nvim_set_option("hlsearch", true)
         end
-
         -- Note: rgflow.hl_qf_matches() is called via ftplugin when a QF window
         -- is opened.
+end
+
+--- The handler for when the spawned job exits
+local function on_exit()
+    if config.match_cnt > 0 then
+        local plural = "s"
+        if config.match_cnt == 1 then plural = "" end
+        print("Adding "..config.match_cnt.." result"..plural.." to the quickfix list...")
+        api.nvim_command('redraw!')
+        vim.schedule(function()
+            -- Schedule it incase a lot of matches
+            populate_qf_with_results()
+        end)
     end
     -- Print exit message
     local msg = " "..config.pattern.." │ "..config.match_cnt.." result"..(config.match_cnt==1 and '' or 's')
@@ -422,17 +459,17 @@ end
 
 --- Starts the async ripgrep job
 local function spawn_job()
-    term = "function"
-    local stdin  = loop.new_pipe(false)
-    local stdout = loop.new_pipe(false)
-    local stderr = loop.new_pipe(false)
+    local stdin  = uv.new_pipe(false)
+    local stdout = uv.new_pipe(false)
+    local stderr = uv.new_pipe(false)
 
     print("Rgflow start search for:  "..config.pattern)
     -- Append the following makes it too long (results in one having to press enter)
     -- .."  with  "..config.demo_cmd)
 
     -- https://github.com/luvit/luv/blob/master/docs.md#uvspawnpath-options-on_exit
-    handle = loop.spawn('rg', {
+    -- vim.print(config.rg_args)
+    handle = uv.spawn('rg', {
         args = config.rg_args,
         stdio = {stdin, stdout, stderr}
     },
@@ -445,8 +482,8 @@ local function spawn_job()
         on_exit()
     end)
     )
-    loop.read_start(stdout, on_stdout)
-    loop.read_start(stderr, on_stderr)
+    uv.read_start(stdout, on_stdout)
+    uv.read_start(stderr, on_stderr)
 end
 
 
@@ -457,6 +494,7 @@ local function get_config(flags, pattern, path)
     api.nvim_set_var('rgflow_flags', flags)
 
     -- Default flags always included
+    -- For highlighting { zs_ze.."$0"..zs_ze }
     local rg_args    = {"--vimgrep", "--no-messages", "--replace",  zs_ze.."$0"..zs_ze}
 
     -- 1. Add the flags first to the Ripgrep command
@@ -477,14 +515,13 @@ local function get_config(flags, pattern, path)
     -- 3. Add the search path
     table.insert(rg_args, path)
 
-    local config = {
+    config = {
         rg_args=rg_args,
         demo_cmd=flags.." "..pattern.." "..path,
         pattern=pattern,
         path=path,
         error_cnt=0,
         match_cnt=0,
-        title="  "..pattern.."    "..path,
         results={},
     }
     return config
@@ -518,7 +555,7 @@ function rgflow.search()
     -- Add a command to the history which can be invoked to repeat this search
     local rg_cmd = ':lua rgflow.start_with_args([['..flags..']], [['..pattern..']], [['..path..']])'
     vim.fn.histadd('cmd', rg_cmd)
-
+    
     -- Global config used by the async job
     config = get_config(flags, pattern, path)
     spawn_job()
