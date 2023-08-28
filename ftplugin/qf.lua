@@ -20,7 +20,6 @@ if qf_settings.disable_edit_alt_file then
     vim.keymap.set({"", "!"}, "<C-6>",   "<NOP>", {noremap = true})
 end
 
-
 -- nnoremap <Plug>RgflowDeleteQuickfix       :<C-U>set  opfunc=v:lua.rgflow.qf_del_operator<CR>g@
 -- nnoremap <Plug>RgflowDeleteQuickfixLine   :<C-U>call v:lua.rgflow.qf_del_operator('line')<CR>
 -- vnoremap <Plug>RgflowDeleteQuickfixVisual :<C-U>call v:lua.rgflow.qf_del_operator(visualmode())<CR>

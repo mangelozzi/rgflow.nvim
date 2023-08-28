@@ -10,6 +10,34 @@ local currentIdx = 1
 local chunkSize = 1000
 local linesAdded = 0
 
+-- Mark groups with RgFlowInputPattern too for when search terms hi goes away
+local function apply_pattern_highlights()
+    local STATE = get_state()
+    vim.api.nvim_buf_clear_namespace(0, STATE.highlight_namespace_id, 0, -1)
+    -- dont iterate getqflist entries because they dont return the filename, which is before each entry
+    local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+    for i, line in ipairs(lines) do
+        local start_col, end_col = 1, 0
+        while true do
+            start_col, end_col = line:find(STATE.pattern, end_col + 1)
+            if not start_col then break end  -- Move this line here
+            vim.api.nvim_buf_add_highlight(0, STATE.highlight_namespace_id, "RgFlowQfPattern", i-1, start_col - 1, end_col)
+            start_col = end_col + 1
+        end
+    end
+end
+
+-- The usual /term highlights
+local function apply_search_term_highlight()
+        -- Remember 0 is considered true in lua
+    if get_settings().quickfix.incsearch_after then
+        -- Set incremental search to be the same value as pattern
+        vim.fn.setreg("/", get_state().pattern, "c")
+        -- Trigger the highlighting of search by turning hl on
+        api.nvim_set_option("hlsearch", true)
+    end
+end
+
 --- An operator to delete linewise from the quickfix window.
 -- @mode - Refer to module doc string at top of this file.
 function M.qf_del_operator(mode)
@@ -23,6 +51,7 @@ function M.qf_del_operator(mode)
     end
     -- Don't create a new qf list, so use 'r'. Applies to colder/cnewer etc.
     vim.fn.setqflist(qf_list, 'r')
+    apply_pattern_highlights()
     vim.fn.winrestview(win_pos)
 end
 
@@ -51,63 +80,8 @@ function M.qf_mark_operator(add_not_remove, mode)
     end
     -- Don't create a new qf list, so use 'r'. Applies to colder/cnewer etc.
     vim.fn.setqflist(qf_list, 'r')
+    apply_pattern_highlights()
     vim.fn.winrestview(win_pos)
-end
-
-
-
-
-
-
---- Highlight the search pattern matches in the quickfix window.
-function M.hl_qf_matches()
-    -- Needs to be called whenever quickfix window is opened
-    -- :cclose will clear the following highlighting
-    -- Called via the ftplugin mechanism.
-    local win = vim.fn.getqflist({winid=1}).winid
-
-    -- If the size of qf_list is zero, then return
-    local qf_list = vim.fn.getqflist({id=0, items=0}).items
-    if #qf_list == 0 then
-        return
-    end
-
-    -- Get the first qf line and check it has rgflow highlighting markers, if
-    -- not then return immediately.
-    local first_qf_line = qf_list[1].text
-    -- api.nvim_command("messages clear")
-
-    local zs_ze = get_settings().quickfix.zs_ze_pattern_delimiter
-    if not string.find(first_qf_line, zs_ze) then
-        -- First line does not have a zs_ze tag, so quicklist not from rgflow.
-        return
-    end
-
-    -- Get a list of previous matches that were added to this window.
-    local ok, rgflow_matches = pcall(function() return api.nvim_win_get_var(win, 'rgflow_matches') end)
-    -- If therer is an error (no matches have been set yet), then use an empty list.
-    if not ok then rgflow_matches = {} end
-
-    -- For each existing match, delete the match
-    for _, id in pairs(rgflow_matches) do
-        vim.fn.matchdelete(id, win)
-    end
-    rgflow_matches = {}
-    local id
-
-    -- Set char ASCII value 30 (<C-^>),"record separator" as invisible char around the pattern matches
-    -- Conceal options set in ftplugin
-    id = vim.fn.matchadd("Conceal", zs_ze, 12, -1, {conceal="", window=win})
-    table.insert(rgflow_matches, id)
-
-    -- Highlight the matches between the invisible chars
-    -- \{-n,} means match at least n chars, none greedy version
-    -- priority 0, so that incsearch at priority 1 takes preference
-    id = vim.fn.matchadd("RgFlowQfPattern", zs_ze..".\\{-1,}"..zs_ze, 0, -1, {window=win})
-    table.insert(rgflow_matches, id)
-
-    -- Store the matches as a window local list, so they can be deleted next time.
-    api.nvim_win_set_var(win, 'rgflow_matches', rgflow_matches)
 end
 
 
@@ -116,8 +90,8 @@ local function processChunk()
     local endIndex = math.min(currentIdx + chunkSize - 1, #STATE.results)
     local chunkRows = {unpack(STATE.results, currentIdx, endIndex)}
 
-    local title="  "..STATE.pattern.." (".. #STATE.results .. ")   "..STATE.path
-    vim.fn.setqflist({}, 'a', {title = title, lines = chunkRows})
+    -- vim.fn.setqflist({}, 'a', {title = title, lines = chunkRows})
+    vim.fn.setqflist({}, 'a', {title="foo", lines = chunkRows})
 
     if currentIdx <= #STATE.results then
         currentIdx = endIndex + 1
@@ -126,41 +100,37 @@ local function processChunk()
         vim.defer_fn(processChunk, 0)
     else
         print("Added "..STATE.match_cnt.." ... done")
+        apply_search_term_highlight()
+        apply_pattern_highlights()
     end
 end
 
 
 M.populate_with_results = function()
-        -- Create a new qf list, so use ' '. Applies to colder/cnewer etc.
-        -- Refer to `:help setqflist`
+    -- Create a new qf list, so use ' '. Applies to colder/cnewer etc.
+    -- Refer to `:help setqflist`
 
-        local STATE = get_state()
-        if STATE.match_cnt > 1 then
-            api.nvim_command('copen')
+    local STATE = get_state()
+    if STATE.match_cnt > 1 then
+        api.nvim_command('copen')
+        local title="  "..STATE.pattern.." (".. #STATE.results .. ")   "..STATE.path
+        local create_qf_options = {title = title, pattern = STATE.pattern}
+        if get_settings().quickfix.new_list_always_appended then
+            create_qf_options.nr = "$"
         end
-
-        --- vim.fn.setqflist({}, ' ', {title=STATE.title, lines=STATE.results})
-        linesAdded = 0
-        processChunk()
-
-        if get_settings()['quickfix']['open_qf_list'] then
+        vim.fn.setqflist({}, ' ', create_qf_options) -- If what is used then list is ignored
+        if get_settings().quickfix.open_qf_list then
             local height = STATE.match_cnt
-            local max = get_settings()['quickfix']['max_height_lines']
+            local max = get_settings().quickfix.max_height_lines
             if height > max then height = max end
             if height < 3 then height = 3 end
             local win = vim.fn.getqflist({winid=1}).winid
             api.nvim_win_set_height(win, height)
         end
 
-        -- Remember 0 is considered true in lua
-        if get_settings()['incsearch_after'] then
-            -- Set incremental search to be the same value as pattern
-            vim.fn.setreg("/", STATE.pattern, "c")
-            -- Trigger the highlighting of search by turning hl on
-            api.nvim_set_option("hlsearch", true)
-        end
-        -- Note: rgflow.hl_qf_matches() is called via ftplugin when a QF window
-        -- is opened.
+        linesAdded = 0
+        processChunk()
+    end
 end
 
 return M

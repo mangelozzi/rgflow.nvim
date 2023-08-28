@@ -1,3 +1,7 @@
+A bit buggy
+Todo: qf operators
+Visual operators for opening ui
+
 nvim-rgflow.lua Plugin
 
 

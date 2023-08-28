@@ -7,8 +7,10 @@ local defaults = {
     -- seprated by a space
     -- WARNING !!! Glob for '-g *{*}' will not use .gitignore file: https://github.com/BurntSushi/ripgrep/issues/2252
     cmd_flags = "--smart-case -g *.{*,py} -g !*.{min.js,pyc} --fixed-strings --no-fixed-strings --no-ignore --ignore -M 500",
+
     -- After a search, whether to set incsearch to be the pattern searched for
     incsearch_after = true,
+
     mappings = {
         n = {
             ["<CR>"] = "start", -- With the ui open, start a search with the current parameters
@@ -40,15 +42,18 @@ local defaults = {
         -- String to prepend when marking an entry in the quick fix
         mark_str = "▌",
 
-        -- The start and end of pattern match invisible marker
-        zs_ze_pattern_delimiter = "\30",
-
         -- Open the quickfix window automatically after a serach
         open_qf_list = true,
 
         -- The QF window is set to the height of the number of matches, but bounded
         -- to be between a min of 3 and a max of this variable:
         max_height_lines = 7,
+
+        -- By default a new search will create a search list after the current qf list
+        -- Any lists afterwards will be lost
+        -- Set to true such that if you navigate to older qf list with :colder, then
+        -- starting a new list will append it after :clast
+        new_list_always_appended = false,
 
         -- Disable CTRL+^ and CTRL + SHIFT + ^ to jump to alt file
         -- Generally don't wish to switch to an alt file within the small QF window

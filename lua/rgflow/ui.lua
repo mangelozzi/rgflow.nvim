@@ -109,6 +109,11 @@ function M.open(pattern, flags, path)
 end
 
 function M.start()
+    if vim.fn.mode() == "i" then
+        -- If start search in insert mode with ENTER, will open QF in insert mode and gets lots of errors
+        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", true)
+    end
+
     local bufi = get_state().bufi
     local flags, pattern, path = unpack(api.nvim_buf_get_lines(bufi, 0, 3, true))
 
@@ -123,6 +128,7 @@ function M.start()
 
     -- api.nvim_win_close(wini, true)
     -- Closing the input window triggers an Autocmd to close the heading window
+    -- see `api.nvim_command('au BufWipeout <buffer> exe "silent bwipeout! '..bufh..'"')` above
     api.nvim_win_close(get_state().wini, true)
     -- api.nvim_win_close(M.winh, true)
     search.run(pattern, flags, path)

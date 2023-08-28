@@ -3,7 +3,7 @@ local uv = vim.loop
 local api = vim.api
 local quickfix = require("rgflow.quickfix")
 local get_state = require("rgflow.state").get_state
-local set_state = require("rgflow.state").set_state
+local get_settings = require('rgflow.settingslib').get_settings
 
 local handle
 
@@ -113,8 +113,6 @@ local function spawn_job()
     local stderr = uv.new_pipe(false)
 
     local STATE = get_state()
-    print("STATE is currently")
-    vim.print(STATE)
     print("Rgflow start search for:  " .. STATE.pattern)
     -- Append the following makes it too long (results in one having to press enter)
     -- .."  with  "..STATE.demo_cmd)
@@ -141,6 +139,46 @@ local function spawn_job()
     )
     uv.read_start(stdout, on_stdout)
     uv.read_start(stderr, on_stderr)
+end
+
+
+--- Prepares the global STATE to be used by the search.
+-- @return the global STATE
+local function set_state(pattern, flags, path)
+    -- Update the setting's flags so it retains its value for the session.
+    get_settings().cmd_flags = flags
+
+    -- Default flags always included
+    -- For highlighting { ZS_ZE.."$0"..ZS_ZE }
+    -- local rg_args = {"--vimgrep", "--no-messages", "--replace", zs_ze .. "$0" .. zs_ze}
+    local rg_args = {"--vimgrep", "--no-messages"}
+
+    -- 1. Add the flags first to the Ripgrep command
+    local flags_list = vim.split(flags, " ")
+
+    -- set conceallevel=2
+    -- syntax match Todo /bar/ conceal
+    -- :help conceal
+
+    -- for flag in flags:gmatch("[-%w]+") do table.insert(rg_args, flag) end
+    for i, flag in ipairs(flags_list) do
+        table.insert(rg_args, flag)
+    end
+
+    -- 2. Add the pattern
+    table.insert(rg_args, pattern)
+
+    -- 3. Add the search path
+    table.insert(rg_args, path)
+
+    local STATE = get_state()
+    STATE.rg_args = rg_args
+    STATE.demo_cmd = 'rg ' .. flags .. " " .. pattern .. " " .. path
+    STATE.pattern = pattern
+    STATE.path = path
+    STATE.error_cnt = 0
+    STATE.match_cnt = 0
+    STATE.results = {}
 end
 
 --- From the UI, it starts the ripgrep search.
