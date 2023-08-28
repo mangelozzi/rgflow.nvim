@@ -1,48 +1,71 @@
 local M = {}
+M.SETTINGS = {}
 
 -- Default settings
 local defaults = {
-    option1 = true,
-    option2 = "default_value",
-    subsettings = {
-        suboption1 = 10,
-        suboption2 = "sub_default"
-    },
-    -- rgflow_flags
     -- For some reason --no-messages makes it stop working
     -- seprated by a space
     -- WARNING !!! Glob for '-g *{*}' will not use .gitignore file: https://github.com/BurntSushi/ripgrep/issues/2252
     cmd_flags = "--smart-case -g *.{*,py} -g !*.{min.js,pyc} --fixed-strings --no-fixed-strings --no-ignore --ignore -M 500",
-    -- rgflow_set_incsearch
     -- After a search, whether to set incsearch to be the pattern searched for
     incsearch_after = true,
     mappings = {
-        ["F31"] = "Search", -- " Start blank search
-        ["F32"] = "searchCword", -- " Rip grep in files, use <cword> under the cursor as starting point
-        ["F33"] = "searchPaste", -- " Start and paste contents of search register
-        ["F34"] = "searchVisual", -- " Rip grep in files, use visual selection as starting point
-        ["F35"] = "searchPreviousAgain"
+        n = {
+            ["<CR>"] = "start", -- With the ui open, start a search with the current parameters
+            ["<ESC>"] = "close", -- With the ui open, disgard and close the UI window
+            ["<leader>rG"] = "open_blank", -- open UI - search pattern = blank
+            ["<leader>rg"] = "open_cword", -- open UI - search pattern = <cword>
+            ["<leader>rp"] = "open_paste", -- open UI - search pattern = First line of unnamed register as the search pattern
+            ["<leader>ra"] = "open_again" -- open UI - search pattern = Previous search pattern
+        },
+        i = {
+            ["<CR>"] = "start" -- With the ui open, start a search with the current parameters (from insert mode)
+        },
+        x = {
+            ["<leader>rg"] = "open_visual" -- open UI - search pattern = current visual selection
+        },
     },
+
     quickfix = {
-        -- rgflow_mark_str
+        -- Whether to use `set relativenumber`
+        -- Quickfix window - Whether to show relative numbers
+        relative_number = false,
+
+        -- Quickfix window - Whether to wrap text
+        wrap = false,
+
+        -- Quickfix window - Blank string to not show color_column, or column number to set it at a certain width
+        color_column = "",
+
         -- String to prepend when marking an entry in the quick fix
         mark_str = "▌",
+
+        -- The start and end of pattern match invisible marker
+        zs_ze_pattern_delimiter = "\30",
+
         -- Open the quickfix window automatically after a serach
-        -- g:rgflow_open_qf_list
         open_qf_list = true,
+
         -- The QF window is set to the height of the number of matches, but bounded
         -- to be between a min of 3 and a max of this variable:
-        -- g:rgflow_qf_max_height
         max_height_lines = 7,
+
+        -- Disable CTRL+^ and CTRL + SHIFT + ^ to jump to alt file
+        -- Generally don't wish to switch to an alt file within the small QF window
+        disable_edit_alt_file = true,
         mappings = {
-            ["<F21>"] = "DeleteOperator",
-            ["<F22>"] = "DeleteLine",
-            ["<F23>"] = "DeleteVisual",
-            ["<F24>"] = "MarkLine",
-            ["<F25>"] = "MarkVisual",
-            ["<F26>"] = "UnmarkLine",
-            ["<F27>"] = "UnmarkVisual"
-        }
+            n = {
+                ["d"] = "qf_delete",
+                ["dd"] = "qf_delete_line",
+                ["<TAB>"] = "qf_mark",
+                ["<S-TAB>"] = "qf_unmark",
+            },
+            x = {
+                ["d"] = "qf_delete_visual",
+                ["<TAB>"] = "qf_mark_visual",
+                ["<S-TAB>"] = "qf_unmark_visual",
+            },
+        },
     },
     colors = {
         -- Recommend not setting a BG so it uses the current lines BG
@@ -54,11 +77,11 @@ local defaults = {
         RgFlowInputBg       = "guifg=black   guibg=#e0e0e0 ctermfg=0 ctermbg=254",
         RgFlowInputFlags    = "guifg=gray    guibg=#e0e0e0 ctermfg=8 ctermbg=254",
         RgFlowInputPattern  = "guifg=green   guibg=#e0e0e0 gui=bold ctermfg=2 ctermbg=254 cterm=bold",
-        RgFlowInputPath     = "guifg=black   guibg=#e0e0e0 ctermfg=0 ctermbg=254"
-    }
+        RgFlowInputPath     = "guifg=black   guibg=#e0e0e0 ctermfg=0 ctermbg=254",
+    },
 }
 
-local function apply_color_settings(colors)
+local function apply_color(colors)
     for group_name, definition in pairs(colors) do
         if vim.fn.hlexists(group_name) == 0 then
             vim.cmd("highlight " .. group_name .. " " .. definition)
@@ -66,15 +89,33 @@ local function apply_color_settings(colors)
     end
 end
 
+local function apply_keymaps(mappings)
+    for mode, mode_mappings in pairs(mappings) do
+        for keymap, func_name in pairs(mode_mappings) do
+            if string.sub(func_name, 1, 5) == "open_" then
+                -- These are keymaps that are outside of the rgflow pop up window, or the quickfix window
+                vim.keymap.set(mode, keymap, require("rgflow")[func_name], {noremap = true})
+            end
+        end
+    end
+end
+
 local function apply_settings(settings)
-    M.settings = settings  -- Save the settings for run time access
-    apply_color_settings(settings.colors)
-    vim.print('setup rgflow with', settings)
+    apply_color(settings.colors)
+    apply_keymaps(settings.mappings)
+    M.SETTINGS = settings
 end
 
 function M.setup(user_settings)
     local settings = vim.tbl_deep_extend("force", defaults, user_settings)
     apply_settings(settings)
+end
+
+-- Provide a getter function to access the settings
+-- The table may change or be reassigned, and hence modules that import it will
+-- loose their reference to the current settings
+function M.get_settings()
+    return M.SETTINGS
 end
 
 return M
