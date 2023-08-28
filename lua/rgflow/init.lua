@@ -52,8 +52,16 @@ hotkeys:
 local api = vim.api
 local uv = vim.loop
 local zs_ze = "\30"  -- The start and end of pattern match invisible marker
-local rgflow = {}
 local config = {}
+
+local M = {}
+
+function M.setup(user_settings)
+    local settingslib = require('rgflow.settingslib')
+    settingslib.setup(user_settings)
+end
+
+
 
 --- Prints a @msg to the command line with error highlighting.
 -- Does not raise an error.
@@ -150,7 +158,7 @@ end
 
 --- An operator to delete linewise from the quickfix window.
 -- @mode - Refer to module doc string at top of this file.
-function rgflow.qf_del_operator(mode)
+function M.qf_del_operator(mode)
     -- Only operates linewise, since 1 Quickfix entry is tied to 1 line.
     local win_pos = vim.fn.winsaveview()
     local startl, endl = get_line_range(mode)
@@ -168,7 +176,7 @@ end
 --- An operator to mark lines in the quickfix window.
 -- Marking is accomplished by prefixing the line with a given string.
 -- @mode - Refer to module doc string at top of this file.
-function rgflow.qf_mark_operator(add_not_remove, mode)
+function M.qf_mark_operator(add_not_remove, mode)
     -- Only operates linewise, since 1 Quickfix entry is tied to 1 line.
     local win_pos = vim.fn.winsaveview()
     local startl, endl = get_line_range(mode)
@@ -234,7 +242,7 @@ end
 
 --- Auto-complete function for ripgrap flags
 -- @param findstart and @base, and @return refer to :help complete-functions
-function rgflow.flags_complete(findstart, base)
+function M.flags_complete(findstart, base)
     if findstart == 1 then
         local pos = api.nvim_win_get_cursor(0)
         local row = pos[1]
@@ -255,7 +263,7 @@ end
 
 
 --- Highlight the search pattern matches in the quickfix window.
-function rgflow.hl_qf_matches()
+function M.hl_qf_matches()
     -- Needs to be called whenever quickfix window is opened
     -- :cclose will clear the following highlighting
     -- Called via the ftplugin mechanism.
@@ -306,7 +314,7 @@ end
 
 
 --- Within the input dialogue, call the appropriate auto-complete function.
-function rgflow.complete()
+function M.complete()
     local linenr = api.nvim_win_get_cursor(0)[1]
     if vim.fn.pumvisible() ~= 0 then
         api.nvim_input("<C-N>")
@@ -529,13 +537,13 @@ end
 
 
 --- Closes the input dialogue when <ESC> is pressed
-function rgflow.abort()
-    api.nvim_win_close(rgflow.wini, true)
+function M.abort()
+    api.nvim_win_close(M.wini, true)
 end
 
 
 --- From the UI, it starts the ripgrep search.
-function rgflow.search()
+function M.search()
     local flags, pattern, path = unpack(api.nvim_buf_get_lines(bufi, 0, 3, true))
 
     if pattern == "" then
@@ -549,8 +557,8 @@ function rgflow.search()
 
     -- api.nvim_win_close(wini, true)
     -- Closing the input window triggers an Autocmd to close the heading window
-    api.nvim_win_close(rgflow.wini, true)
-    -- api.nvim_win_close(rgflow.winh, true)
+    api.nvim_win_close(M.wini, true)
+    -- api.nvim_win_close(M.winh, true)
 
     -- Add a command to the history which can be invoked to repeat this search
     local rg_cmd = ':lua rgflow.start_with_args([['..flags..']], [['..pattern..']], [['..path..']])'
@@ -641,21 +649,21 @@ end
 -- Begins Rgflow search via the command search history, ie. q:
 -- @param flags/pattern/path are saved in the command history, and then passed
 --        into this function.
-function rgflow.start_with_args(flags, pattern, path)
+function M.start_with_args(flags, pattern, path)
     -- If called from the command history, for example by c_^F or q:
-    rgflow.buf, rgflow.wini, rgflow.winh = start_ui(flags, pattern, path)
+    M.buf, M.wini, M.winh = start_ui(flags, pattern, path)
 end
 
 
 -- Begins Rgflow search via a hotkey
 -- @mode - Refer to module doc string at top of this file.
-function rgflow.start_via_hotkey(mode)
+function M.start_via_hotkey(mode)
     -- If called from the hotkey
     -- api.nvim_command("messages clear")
     local flags   = api.nvim_get_var('rgflow_flags')
     local pattern = get_pattern(mode) or ""
     local path    = vim.fn.getcwd()
-    rgflow.buf, rgflow.wini, rgflow.winh = start_ui(flags, pattern, path)
+    M.buf, M.wini, M.winh = start_ui(flags, pattern, path)
 end
 
-return rgflow
+return M
