@@ -33,7 +33,7 @@ end
 --                  when the dialogue opens.
 function M.open(pattern, flags, path)
     pattern = pattern or ""
-    flags   = flags or get_settings()['cmd_flags']
+    flags   = flags or get_settings().cmd_flags
     path    = path or vim.fn.getcwd()
 
     -- get the editor's max width and height
@@ -103,13 +103,13 @@ function M.open(pattern, flags, path)
 
     api.nvim_command('redraw!')
     local state = get_state()
-    state['bufi'] = bufi
-    state['wini'] = wini
-    state['winh'] = winh
+    state.bufi = bufi
+    state.wini = wini
+    state.winh = winh
 end
 
 function M.start()
-    local bufi = get_state()['bufi']
+    local bufi = get_state().bufi
     local flags, pattern, path = unpack(api.nvim_buf_get_lines(bufi, 0, 3, true))
 
     if pattern == "" then
@@ -123,7 +123,7 @@ function M.start()
 
     -- api.nvim_win_close(wini, true)
     -- Closing the input window triggers an Autocmd to close the heading window
-    api.nvim_win_close(get_state()['wini'], true)
+    api.nvim_win_close(get_state().wini, true)
     -- api.nvim_win_close(M.winh, true)
     search.run(pattern, flags, path)
 end
@@ -131,7 +131,7 @@ end
 
 --- Closes the input dialogue
 function M.close()
-    api.nvim_win_close(get_state()['wini'], true)
+    api.nvim_win_close(get_state().wini, true)
 end
 
 return M

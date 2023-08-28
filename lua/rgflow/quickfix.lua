@@ -36,7 +36,7 @@ function M.qf_mark_operator(add_not_remove, mode)
     local startl, endl = utils.get_line_range(mode)
     -- local count = endl-startl + 1
     local qf_list = vim.fn.getqflist()
-    local mark = get_settings()['quickfix']['mark_str']
+    local mark = get_settings().quickfix.mark_str
 
     -- the quickfix list is an arrow of dictionary entries, an example of one entry:
     -- {'lnum': 57, 'bufnr': 5, 'col': 1, 'pattern': '', 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'module': '', 'text': 'function! myal#StripTrailingWhitespace()'}
@@ -77,7 +77,7 @@ function M.hl_qf_matches()
     local first_qf_line = qf_list[1].text
     -- api.nvim_command("messages clear")
 
-    local zs_ze = get_settings()['quickfix']['zs_ze_pattern_delimiter']
+    local zs_ze = get_settings().quickfix.zs_ze_pattern_delimiter
     if not string.find(first_qf_line, zs_ze) then
         -- First line does not have a zs_ze tag, so quicklist not from rgflow.
         return
