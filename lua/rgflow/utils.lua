@@ -6,34 +6,40 @@ local api = vim.api
 -- returned, ignoring column positions.
 -- If the mode is normal, then it adds the [count] prefix to the current line.
 -- @mode - Refer to module doc string at top of this file.
--- @return - The start line, and the end line numbers.
+-- @return - The start line, and the end line numbers, and whether start was before end
 function M.get_line_range(mode)
     -- call with visualmode() as the argument
     -- vnoremap <leader>zz :<C-U>call rgflow#GetVisualSelection(visualmode())<Cr>
     -- nvim_buf_get_mark({buffer}, {name})
     local startl, endl
     if mode == 'v' or mode=='V' or mode=='\22' then
-        startl = api.nvim_buf_get_mark(0, "<")[1]
-        endl   = api.nvim_buf_get_mark(0, ">")[1]
+        _, startl, _ = unpack(vim.fn.getpos('v'))
+        _, endl,   _ = unpack(vim.fn.getpos('.'))
     else
         startl = vim.fn.line('.')
         endl = vim.v.count1 + startl - 1
     end
-    return startl, endl
+    if startl <= endl then
+        return startl, endl, true
+    else
+        return endl, startl, false
+    end
 end
 
 
 --- Retrieves the visually seleceted text
 -- Example mapping: vnoremap <leader>zz :<C-U>call rgflow#GetVisualSelection(visualmode())<Cr>
--- @mode - Refer to module doc string at top of this file.
+-- @mode - The result of `vim.fn.mode()`
 -- @return - A string containing the visually selected text, where lines are
 --           joined with \n.
 function M.get_visual_selection(mode)
-    -- nvim_buf_get_mark({buffer}, {name})
-    local line_start, column_start = unpack(api.nvim_buf_get_mark(0, "<"))
-    local line_end,   column_end   = unpack(api.nvim_buf_get_mark(0, ">"))
+    local _, l1, c1 = unpack(vim.fn.getpos('v'))
+    local _, l2, c2   = unpack(vim.fn.getpos('.'))
+    local line_start, line_end, column_start, column_end = l1, l2, c1, c2
+    if l1 > l2 or l1==l2 and c2 > c1 then
+        line_start, line_end, column_start, column_end = l2, l1, c2, c1
+    end
     line_start   = line_start - 1
-    column_start = column_start + 1
     column_end   = column_end + 2
     -- nvim_buf_get_lines({buffer}, {start}, {end}, {strict_indexing})
     local lines = api.nvim_buf_get_lines(0, line_start, line_end, true)
@@ -54,7 +60,7 @@ function M.get_visual_selection(mode)
     else
         return ''
     end
-    vim.print('lines is', table.concat(lines, "\n"))
+    -- vim.print('lines is', table.concat(lines, "\n"))
     return table.concat(lines, "\n")
 end
 

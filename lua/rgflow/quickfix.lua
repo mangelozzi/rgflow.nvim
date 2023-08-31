@@ -40,10 +40,11 @@ end
 
 --- An operator to delete linewise from the quickfix window.
 -- @mode - Refer to module doc string at top of this file.
-function M.qf_del_operator(mode)
+function M.delete_operator(mode)
     -- Only operates linewise, since 1 Quickfix entry is tied to 1 line.
     local win_pos = vim.fn.winsaveview()
-    local startl, endl = utils.get_line_range(mode)
+    local buffer, line, col = unpack(vim.fn.getpos('v'))
+    local startl, endl, before = utils.get_line_range(mode)
     local count = endl-startl + 1
     local qf_list = vim.fn.getqflist()
     for _=1,count,1 do
@@ -52,21 +53,30 @@ function M.qf_del_operator(mode)
     -- Don't create a new qf list, so use 'r'. Applies to colder/cnewer etc.
     vim.fn.setqflist(qf_list, 'r')
     apply_pattern_highlights()
-    vim.fn.winrestview(win_pos)
+    -- When deleting a visual set of lines, it's more intuitive to jump to the
+    -- start of where the lines were deleted, rather then the current line place
+    -- I.e. say you delete from line 4 to 6, now on line 6 you have to new lines
+    -- above the cursor
+    if before then
+        vim.api.nvim_win_set_cursor(buffer, {line, col})
+    else
+        vim.fn.winrestview(win_pos)
+    end
+    -- Clear the current visual selection.
+    vim.fn.feedkeys(vim.api.nvim_replace_termcodes('<ESC>',true,nil,true), "n")
 end
 
 
 --- An operator to mark lines in the quickfix window.
 -- Marking is accomplished by prefixing the line with a given string.
 -- @mode - Refer to module doc string at top of this file.
-function M.qf_mark_operator(add_not_remove, mode)
+function M.mark_operator(add_not_remove, mode)
     -- Only operates linewise, since 1 Quickfix entry is tied to 1 line.
     local win_pos = vim.fn.winsaveview()
-    local startl, endl = utils.get_line_range(mode)
+    local startl, endl, _ = utils.get_line_range(mode)
     -- local count = endl-startl + 1
     local qf_list = vim.fn.getqflist()
     local mark = get_settings().quickfix.mark_str
-
     -- the quickfix list is an arrow of dictionary entries, an example of one entry:
     -- {'lnum': 57, 'bufnr': 5, 'col': 1, 'pattern': '', 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'module': '', 'text': 'function! myal#StripTrailingWhitespace()'}
     if add_not_remove  then

@@ -1,5 +1,6 @@
+
 A bit buggy
-Todo: qf operators
+Todo: auto complete
 Visual operators for opening ui
 
 nvim-rgflow.lua Plugin
