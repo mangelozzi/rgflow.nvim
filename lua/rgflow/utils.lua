@@ -88,4 +88,18 @@ function M.print_error(msg)
     api.nvim_command("echohl NONE")
 end
 
+
+function M.get_done_msg(STATE)
+    -- local plural = STATE.match_cnt == 1 and "" or "s"
+    local msg = " Added " .. STATE.match_cnt .. " │ " .. STATE.pattern
+    if STATE.error_cnt > 0 then
+        msg = msg .. " | " .. STATE.error_cnt .. " errors"
+    end
+    if STATE.match_cnt == 0 then
+        msg = msg .. " | " .. STATE.path
+    end
+    return msg
+end
+
 return M
+

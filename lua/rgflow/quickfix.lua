@@ -84,7 +84,6 @@ function M.qf_mark_operator(add_not_remove, mode)
     vim.fn.winrestview(win_pos)
 end
 
-
 local function processChunk()
     local STATE = get_state()
     local endIndex = math.min(currentIdx + chunkSize - 1, #STATE.results)
@@ -96,10 +95,10 @@ local function processChunk()
     if currentIdx <= #STATE.results then
         currentIdx = endIndex + 1
         linesAdded = linesAdded  + #chunkRows
-        print('Adding ... ' .. linesAdded .. ' of ' .. #STATE.results)
+        print(' Adding ... ' .. linesAdded .. ' of ' .. #STATE.results)
         vim.defer_fn(processChunk, 0)
     else
-        print("Added "..STATE.match_cnt.." ... done")
+        print(utils.get_done_msg(STATE))
         apply_search_term_highlight()
         apply_pattern_highlights()
     end
@@ -111,7 +110,7 @@ M.populate_with_results = function()
     -- Refer to `:help setqflist`
 
     local STATE = get_state()
-    if STATE.match_cnt > 1 then
+    if STATE.match_cnt > 0 then
         api.nvim_command('copen')
         local title="  "..STATE.pattern.." (".. #STATE.results .. ")   "..STATE.path
         local create_qf_options = {title = title, pattern = STATE.pattern}

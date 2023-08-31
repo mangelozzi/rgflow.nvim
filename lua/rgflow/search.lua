@@ -2,6 +2,7 @@ local M = {}
 local uv = vim.loop
 local api = vim.api
 local quickfix = require("rgflow.quickfix")
+local utils = require("rgflow.utils")
 local get_state = require("rgflow.state").get_state
 local get_settings = require('rgflow.settingslib').get_settings
 
@@ -74,9 +75,11 @@ local function on_stdout(err, data)
         if STATE.match_cnt == 1 then
             plural = ""
         end
-        schedule_print("Found " .. STATE.match_cnt .. " result" .. plural .. " ... ", false)
+        schedule_print(" Found " .. STATE.match_cnt .. " result" .. plural .. " ... ", false)
     end
 end
+
+
 
 --- The handler for when the spawned job exits
 local function on_exit()
@@ -86,7 +89,7 @@ local function on_exit()
         if STATE.match_cnt == 1 then
             plural = ""
         end
-        print("Adding " .. STATE.match_cnt .. " result" .. plural .. " to the quickfix list...")
+        print(" Adding " .. STATE.match_cnt .. " result" .. plural .. " to the quickfix list...")
         api.nvim_command("redraw!")
         vim.schedule(
             function()
@@ -94,16 +97,9 @@ local function on_exit()
                 quickfix.populate_with_results()
             end
         )
-    end
-    -- Print exit message
-    local msg = " " .. STATE.pattern .. " │ " .. STATE.match_cnt .. " result" .. (STATE.match_cnt == 1 and "" or "s")
-    if STATE.error_cnt > 0 then
-        msg = msg .. " (" .. STATE.error_cnt .. " errors)"
     else
-        -- msg = msg.." │ "..STATE.demo_cmd
-        msg = msg .. " │ " .. STATE.path
+        schedule_print(utils.get_done_msg(STATE), true)
     end
-    schedule_print(msg, true)
 end
 
 --- Starts the async ripgrep job
