@@ -15,14 +15,20 @@ function M.auto_complete()
     elseif linenr == 1 then
         -- Flags line - Using completefunc
         -- nvim_buf_set_option({buffer}, {name}, {value})
-        api.nvim_buf_set_option(0, "completefunc", rg.flags_complete)
-        api.nvim_input("<C-X><C-U>")
+        -- api.nvim_buf_set_option(0, "completefunc", rg.flags_complete)
+        -- api.nvim_set_option_value("completefunc", "v:lua:rgflow.rg.flags_complete", {scope="local"})
+        vim.opt_local.completefunc = "v:lua.require('rgflow.rg').flags_complete"
+        -- api.nvim_input("<C-X><C-U>")
+        vim.fn.feedkeys(vim.api.nvim_replace_termcodes('<C-X><C-U>',true,nil,true), "n")
     elseif linenr == 2 then
         -- Pattern line
-        api.nvim_input("<C-N>")
+        -- Default autocomplete is an empty string
+        vim.opt_local.completefunc = ""
+        vim.fn.feedkeys(vim.api.nvim_replace_termcodes('<C-N>',true,nil,true), "n")
     elseif linenr == 3 then
         -- Filename line
-        api.nvim_input("<C-X><C-F>")
+        vim.opt_local.completefunc = "file"
+        vim.fn.feedkeys(vim.api.nvim_replace_termcodes('<C-X><C-F>',true,nil,true), "n")
     end
 end
 

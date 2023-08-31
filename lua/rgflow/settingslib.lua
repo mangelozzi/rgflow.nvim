@@ -1,6 +1,7 @@
 local M = {}
 M.SETTINGS = {}
 
+
 -- Default settings
 local defaults = {
     -- For some reason --no-messages makes it stop working
@@ -12,22 +13,47 @@ local defaults = {
     incsearch_after = true,
 
     mappings = {
-        n = {
-            ["<CR>"] = "start", -- With the ui open, start a search with the current parameters
-            ["<ESC>"] = "close", -- With the ui open, disgard and close the UI window
-            ["<leader>rG"] = "open_blank", -- open UI - search pattern = blank
-            ["<leader>rg"] = "open_cword", -- open UI - search pattern = <cword>
-            ["<leader>rp"] = "open_paste", -- open UI - search pattern = First line of unnamed register as the search pattern
-            ["<leader>ra"] = "open_again", -- open UI - search pattern = Previous search pattern
+        trigger = {
+            n = {
+                ["<leader>rG"] = "open_blank", -- open UI - search pattern = blank
+                ["<leader>rg"] = "open_cword", -- open UI - search pattern = <cword>
+                ["<leader>rp"] = "open_paste", -- open UI - search pattern = First line of unnamed register as the search pattern
+                ["<leader>ra"] = "open_again", -- open UI - search pattern = Previous search pattern
+            },
+            x = {
+                ["<leader>rg"] = "open_visual", -- open UI - search pattern = current visual selection
+            },
         },
-        i = {
-            ["<CR>"] = "start", -- With the ui open, start a search with the current parameters (from insert mode)
-            ["<TAB>"] = "auto_complete",
-            ["<C-N>"] = "auto_complete",
-            ["<C-P>"] = "auto_complete",
+        ui = {
+            n = {
+                ["<CR>"]  = "start", -- With the ui open, start a search with the current parameters
+                ["<ESC>"] = "close", -- With the ui open, disgard and close the UI window
+                ["<BS>"]  = "nop",   -- No operation
+                ["<C-^>"] = "nop",   -- No operation
+                ["<C-6>"] = "nop",   -- No operation
+            },
+            i = {
+                ["<CR>"]  = "start", -- With the ui open, start a search with the current parameters (from insert mode)
+                ["<TAB>"] = "auto_complete", -- start autocomplete if PUM not visible
+                ["<C-N>"] = "auto_complete", -- start autocomplete if PUM not visible
+                ["<C-P>"] = "auto_complete", -- start autocomplete if PUM not visible
+            },
         },
-        x = {
-            ["<leader>rg"] = "open_visual", -- open UI - search pattern = current visual selection
+        quickfix = {
+            n = {
+                ["d"] = "qf_delete",
+                ["dd"] = "qf_delete_line",
+                ["<TAB>"] = "qf_mark",
+                ["<S-TAB>"] = "qf_unmark",
+                ["<BS>"]  = "nop", -- No operation
+                ["<C-^>"] = "nop", -- No operation
+                ["<C-6>"] = "nop", -- No operation
+            },
+            x = {
+                ["d"] = "qf_delete_visual",
+                ["<TAB>"] = "qf_mark_visual",
+                ["<S-TAB>"] = "qf_unmark_visual",
+            }
         },
     },
 
@@ -61,21 +87,8 @@ local defaults = {
         -- Disable CTRL+^ and CTRL + SHIFT + ^ to jump to alt file
         -- Generally don't wish to switch to an alt file within the small QF window
         disable_edit_alt_file = true,
-
-        mappings = {
-            n = {
-                ["d"] = "qf_delete",
-                ["dd"] = "qf_delete_line",
-                ["<TAB>"] = "qf_mark",
-                ["<S-TAB>"] = "qf_unmark",
-            },
-            x = {
-                ["d"] = "qf_delete_visual",
-                ["<TAB>"] = "qf_mark_visual",
-                ["<S-TAB>"] = "qf_unmark_visual",
-            }
-        },
     },
+
     colors = {
         -- Recommend not setting a BG so it uses the current lines BG
         RgFlowQfPattern     = "guifg=#A0FFA0 guibg=none gui=bold ctermfg=15 ctermbg=none cterm=bold",
@@ -90,6 +103,7 @@ local defaults = {
     },
 }
 
+
 local function apply_color(colors)
     for group_name, definition in pairs(colors) do
         if vim.fn.hlexists(group_name) == 0 then
@@ -98,27 +112,28 @@ local function apply_color(colors)
     end
 end
 
-local function apply_keymaps(mappings)
+
+function M.apply_keymaps(mappings, options)
     for mode, mode_mappings in pairs(mappings) do
         for keymap, func_name in pairs(mode_mappings) do
-            if string.sub(func_name, 1, 5) == "open_" then
-                -- These are keymaps that are outside of the rgflow pop up window, or the quickfix window
-                vim.keymap.set(mode, keymap, require("rgflow")[func_name], {noremap = true})
-            end
+            vim.keymap.set(mode, keymap, require("rgflow")[func_name], options)
         end
     end
 end
 
+
 local function apply_settings(settings)
     apply_color(settings.colors)
-    apply_keymaps(settings.mappings)
+    M.apply_keymaps(settings.mappings.trigger, {noremap = true})
     M.SETTINGS = settings
 end
+
 
 function M.setup(user_settings)
     local settings = vim.tbl_deep_extend("force", defaults, user_settings)
     apply_settings(settings)
 end
+
 
 -- Provide a getter function to access the settings
 -- The table may change or be reassigned, and hence modules that import it will
@@ -126,5 +141,6 @@ end
 function M.get_settings()
     return M.SETTINGS
 end
+
 
 return M

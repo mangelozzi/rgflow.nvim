@@ -29,8 +29,12 @@ M.start = ui.start
 -- Close the current UI window
 M.close = ui.close
 
+-- No operation
+M.nop = function() end
+
 -- Auto complete with rgflags or buffer words or filepaths depending on the input box they are on
-M.auto_complete = ui.auto_complete
+-- M.auto_complete = vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<C-X><C-O>", true, true, true), "n", true)
+M.auto_complete = require('rgflow.autocomplete').auto_complete
 
 -- Search with no UI, just pass in the required arguements, will default to:
 --  pattern = blank

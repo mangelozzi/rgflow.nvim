@@ -1,6 +1,15 @@
-local get_settings = require("rgflow.settingslib").get_settings
-local qf_settings = get_settings().quickfix
+if vim.bo.filetype ~= 'qf' then
+    -- filetype check for when debugging & sourcing
+    return
+end
+
+local settings = require("rgflow.settingslib")
+local qf_settings = settings.get_settings().quickfix
 local rgflow = require("rgflow")
+
+local mappings = settings.get_settings().mappings.quickfix
+local options = {noremap = true, buffer = true, silent = true}
+settings.apply_keymaps(mappings, options)
 
 local function get_prefix(predicate)
     if predicate then
@@ -19,14 +28,3 @@ if qf_settings.disable_edit_alt_file then
     vim.keymap.set({"", "!"}, "<C-S-^>", "<NOP>", {noremap = true})
     vim.keymap.set({"", "!"}, "<C-6>", "<NOP>", {noremap = true})
 end
-
-local function qf_apply_mappings()
-    local mappings = get_settings().quickfix.mappings
-    for mode, mode_mappings in pairs(mappings) do
-        for keymap, func_name in pairs(mode_mappings) do
-            vim.keymap.set(mode, keymap, require("rgflow")[func_name], {noremap = true, buffer = true, silent = true})
-        end
-    end
-end
-
-qf_apply_mappings()
