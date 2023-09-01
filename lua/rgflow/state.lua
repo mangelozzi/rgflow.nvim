@@ -13,6 +13,8 @@ local STATE = {
     error_cnt = 0,      -- Search results error count
     match_cnt = 0,      -- Search results match count
     results = {},       -- Search results
+    lines_added = 0,    -- Number of search results added to quick fix so far
+    previous_print_time = 0,
     highlight_namespace_id = vim.api.nvim_create_namespace("rgflow.nvim"),
     applied_settings = {},
 }

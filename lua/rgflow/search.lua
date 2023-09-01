@@ -4,9 +4,10 @@ local api = vim.api
 local quickfix = require("rgflow.quickfix")
 local utils = require("rgflow.utils")
 local get_state = require("rgflow.state").get_state
-local get_settings = require('rgflow.settingslib').get_settings
+local get_settings = require("rgflow.settingslib").get_settings
 
 local handle
+local MIN_PRINT_TIME = 0.5 -- A float in seconds
 
 --- Schedules a message in the event loop to print.
 -- @param msg - The message to print
@@ -27,6 +28,10 @@ local function schedule_print(msg, echom)
             end
         )
     )
+end
+
+local function get_status_msg(STATE)
+    return " Searching ... " .. STATE.match_cnt .. " result" .. (STATE.match_cnt ~= 1 and 's' or '')
 end
 
 --- The stderr handler for the spawned job
@@ -71,15 +76,14 @@ local function on_stdout(err, data)
                 table.insert(STATE.results, d)
             end
         end
-        local plural = "s"
-        if STATE.match_cnt == 1 then
-            plural = ""
+        local current_time = os.clock()
+        if current_time - STATE.previous_print_time > MIN_PRINT_TIME then
+            -- If print too often, it's hard to exit vim cause flood of messages appearing, and it's already hard enough to exit vim.
+            schedule_print(get_status_msg(STATE), false)
+            STATE.previous_print_time = current_time
         end
-        schedule_print(" Found " .. STATE.match_cnt .. " result" .. plural .. " ... ", false)
     end
 end
-
-
 
 --- The handler for when the spawned job exits
 local function on_exit()
@@ -137,7 +141,6 @@ local function spawn_job()
     uv.read_start(stderr, on_stderr)
 end
 
-
 --- Prepares the global STATE to be used by the search.
 -- @return the global STATE
 local function set_state(pattern, flags, path)
@@ -169,12 +172,13 @@ local function set_state(pattern, flags, path)
 
     local STATE = get_state()
     STATE.rg_args = rg_args
-    STATE.demo_cmd = 'rg ' .. flags .. " " .. pattern .. " " .. path
+    STATE.demo_cmd = "rg " .. flags .. " " .. pattern .. " " .. path
     STATE.pattern = pattern
     STATE.path = path
     STATE.error_cnt = 0
     STATE.match_cnt = 0
     STATE.results = {}
+    STATE.lines_added = 0
 end
 
 --- From the UI, it starts the ripgrep search.
@@ -185,6 +189,7 @@ function M.run(pattern, flags, path)
 
     -- Global STATE used by the async job
     set_state(pattern, flags, path)
+    schedule_print(get_status_msg(get_state()), false)
     spawn_job()
 end
 

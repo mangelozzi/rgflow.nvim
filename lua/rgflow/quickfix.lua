@@ -5,10 +5,8 @@ local get_settings = require('rgflow.settingslib').get_settings
 local get_state = require('rgflow.state').get_state
 
 -- Since adding a lot of items to the quickfix window blocks the editor
--- Add a few then defer, continue
-local currentIdx = 1
-local chunkSize = 1000
-local linesAdded = 0
+-- Add a few then defer, continue. Chunk size of 10'000 makes lua run out memory.
+local CHUNK_SIZE = 1000
 
 -- Mark groups with RgFlowInputPattern too for when search terms hi goes away
 local function apply_pattern_highlights()
@@ -94,18 +92,18 @@ function M.mark_operator(add_not_remove, mode)
     vim.fn.winrestview(win_pos)
 end
 
+
 local function processChunk()
     local STATE = get_state()
-    local endIndex = math.min(currentIdx + chunkSize - 1, #STATE.results)
-    local chunkRows = {unpack(STATE.results, currentIdx, endIndex)}
+    local start_idx = STATE.lines_added + 1
+    local end_idx = math.min(STATE.lines_added + CHUNK_SIZE, #STATE.results)
+    local chunk_rows = {unpack(STATE.results, start_idx, end_idx)}
 
-    -- vim.fn.setqflist({}, 'a', {title = title, lines = chunkRows})
-    vim.fn.setqflist({}, 'a', {title="foo", lines = chunkRows})
+    vim.fn.setqflist({}, 'a', {lines = chunk_rows})
 
-    if currentIdx <= #STATE.results then
-        currentIdx = endIndex + 1
-        linesAdded = linesAdded  + #chunkRows
-        print(' Adding ... ' .. linesAdded .. ' of ' .. #STATE.results)
+    if STATE.lines_added < #STATE.results then
+        STATE.lines_added = STATE.lines_added  + #chunk_rows
+        print(' Adding ... ' .. STATE.lines_added .. ' of ' .. #STATE.results)
         vim.defer_fn(processChunk, 0)
     else
         print(utils.get_done_msg(STATE))
@@ -136,8 +134,6 @@ M.populate_with_results = function()
             local win = vim.fn.getqflist({winid=1}).winid
             api.nvim_win_set_height(win, height)
         end
-
-        linesAdded = 0
         processChunk()
     end
 end
