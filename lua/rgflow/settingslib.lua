@@ -1,6 +1,9 @@
 local M = {}
 M.SETTINGS = {}
+local UI_GROUP = 0
+local colorlib = require('rgflow.colorlib')
 
+M.RgFlowAutoCmdGroup = vim.api.nvim_create_augroup("RgFlowAutoCmdGroup", {clear = true})
 
 -- Default settings
 local defaults = {
@@ -11,6 +14,10 @@ local defaults = {
 
     -- After a search, whether to set incsearch to be the pattern searched for
     incsearch_after = true,
+
+    -- ui_top_line_char = "▄",
+    --  Example chars: ━━━ ═══ ███  ▀▀▀ ▃▃▃   
+    ui_top_line_char = "▃",
 
     mappings = {
         trigger = {
@@ -90,24 +97,60 @@ local defaults = {
     },
 
     colors = {
+        -- The values map to vim.api.nvim_set_hl {val} parameters, see :h nvim_set_hl
+        -- Examples:
+        --      RgFlowInputPath    = {fg = "fg", bg="#1234FF", bold=true}
+        --      RgFlowInputPattern = {link = "Title"}
+        ---- UI
         -- Recommend not setting a BG so it uses the current lines BG
-        RgFlowQfPattern     = "guifg=#A0FFA0 guibg=none gui=bold ctermfg=15 ctermbg=none cterm=bold",
-        RgFlowHead          = "guifg=white   guibg=black gui=bold ctermfg=15 ctermbg=0, cterm=bold",
-        RgFlowHeadLine      = "guifg=#00CC00 guibg=black gui=bold ctermfg=15 ctermbg=0, cterm=bold",
+        RgFlowHead          = nil,
+        RgFlowHeadLine      = nil,
         -- Even though just a background, add the foreground or else when
         -- appending cant see the insert cursor
-        RgFlowInputBg       = "guifg=black   guibg=#e0e0e0 ctermfg=0 ctermbg=254",
-        RgFlowInputFlags    = "guifg=gray    guibg=#e0e0e0 ctermfg=8 ctermbg=254",
-        RgFlowInputPattern  = "guifg=green   guibg=#e0e0e0 gui=bold ctermfg=2 ctermbg=254 cterm=bold",
-        RgFlowInputPath     = "guifg=black   guibg=#e0e0e0 ctermfg=0 ctermbg=254",
+        RgFlowInputBg       = nil,
+        RgFlowInputFlags    = nil,
+        RgFlowInputPattern  = nil,
+        RgFlowInputPath     = nil,
+        ---- Quickfix
+        RgFlowQfPattern     = nil,
     },
 }
 
 
-local function apply_color(colors)
-    for group_name, definition in pairs(colors) do
-        if vim.fn.hlexists(group_name) == 0 then
-            vim.cmd("highlight " .. group_name .. " " .. definition)
+local function get_default_colors()
+    local is_ui_light = colorlib.get_is_normal_fg_bright()
+    -- local STATE = require('rgflow.state').get_state()
+    return {
+        -- Recommend not setting a BG so it uses the current lines BG
+        RgFlowQfPattern     = { fg="fg", bg="bg"},
+        RgFlowHead          = { fg="fg", bg="bg"},
+        RgFlowHeadLine      = { bg="bg", fg=colorlib.get_group_bg(0, 'StatusLine')},
+        -- Even though just a background, add the foreground or else when
+        -- appending cant see the insert cursor
+        RgFlowInputBg       = { bg="fg", fg="bg"},
+        RgFlowInputFlags    = { bg="fg", fg="bg"},
+        RgFlowInputPattern  = { bg="fg", fg=colorlib.get_pattern_color(is_ui_light), bold=true},
+        RgFlowInputPath     = { bg="fg", fg=(is_ui_light and '#333333' or '#eeeeee')},
+    }
+end
+
+
+local function apply_color_def(group_name, color_def)
+    vim.api.nvim_set_hl(UI_GROUP, group_name, color_def)
+end
+
+
+local function setup_hi_groups(user_colors)
+    local default_colors = get_default_colors()
+    for group_name, default_def in pairs(default_colors) do
+        local user_def = user_colors[group_name]
+        if user_def then
+            -- If user defines a color, always apply it
+            apply_color_def(group_name, user_def)
+        else
+            if not colorlib.get_hi_group_exists(UI_GROUP, group_name) then
+                apply_color_def(group_name, default_def)
+            end
         end
     end
 end
@@ -123,15 +166,33 @@ end
 
 
 local function apply_settings(settings)
-    apply_color(settings.colors)
+    setup_hi_groups(settings.colors)
     M.apply_keymaps(settings.mappings.trigger, {noremap = true})
     M.SETTINGS = settings
 end
 
 
+local function create_sync_colors_autocmd()
+    vim.api.nvim_create_autocmd(
+        "ColorScheme",
+        {
+            desc = "When changing colorscheme re-calculate the colors",
+            group = M.RgFlowAutoCmdGroup,
+            callback = function()
+                local STATE = require('rgflow.state').get_state()
+                setup_hi_groups(STATE.applied_settings.colors)
+            end
+        }
+    )
+end
+
+
 function M.setup(user_settings)
+    local STATE = require('rgflow.state').get_state()
     local settings = vim.tbl_deep_extend("force", defaults, user_settings)
     apply_settings(settings)
+    STATE.applied_settings = settings
+    create_sync_colors_autocmd()
 end
 
 

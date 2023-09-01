@@ -180,7 +180,7 @@ end
 --- From the UI, it starts the ripgrep search.
 function M.run(pattern, flags, path)
     -- Add a command to the history which can be invoked to repeat this search
-    local rg_cmd = ":lua rgflow.start_with_args([[" .. flags .. "]], [[" .. pattern .. "]], [[" .. path .. "]])"
+    local rg_cmd = "lua require('rgflow').open([[" .. pattern .. "]], [[" .. flags .. "]], [[" .. path .. "]])"
     vim.fn.histadd("cmd", rg_cmd)
 
     -- Global STATE used by the async job
