@@ -6,7 +6,6 @@ local utils = require("rgflow.utils")
 local get_state = require("rgflow.state").get_state
 local get_settings = require("rgflow.settingslib").get_settings
 
-local handle
 local MIN_PRINT_TIME = 0.5 -- A float in seconds
 
 --- Schedules a message in the event loop to print.
@@ -43,6 +42,10 @@ local function on_stderr(err, data)
         return
     end
     local STATE = get_state()
+    if STATE.mode ~= 'searching' then
+        return
+    end
+
     STATE.error_cnt = STATE.error_cnt + 1
     local timer = uv.new_timer()
     timer:start(
@@ -60,6 +63,10 @@ end
 -- @param err and data - Refer to module doc string at top of this file.
 local function on_stdout(err, data)
     local STATE = get_state()
+    if STATE.mode ~= 'searching' then
+        return
+    end
+
     if err then
         STATE.error_cnt = STATE.error_cnt + 1
         schedule_print("ERROR: " .. vim.inspect(err) .. " >>> " .. vim.inspect(data), true)
@@ -88,6 +95,10 @@ end
 --- The handler for when the spawned job exits
 local function on_exit()
     local STATE = get_state()
+    if STATE.mode ~= 'searching' then
+        -- Search was aborted
+        return
+    end
     if STATE.match_cnt > 0 then
         local plural = "s"
         if STATE.match_cnt == 1 then
@@ -119,7 +130,7 @@ local function spawn_job()
 
     -- https://github.com/luvit/luv/blob/master/docs.md#uvspawnpath-options-on_exit
     -- vim.print(STATE.rg_args)
-    handle =
+    STATE.handle =
         uv.spawn(
         "rg",
         {
@@ -132,7 +143,7 @@ local function spawn_job()
                 stderr:read_stop()
                 stdout:close()
                 stderr:close()
-                handle:close()
+                STATE.handle:close()
                 on_exit()
             end
         )
@@ -160,7 +171,7 @@ local function set_state(pattern, flags, path)
     -- :help conceal
 
     -- for flag in flags:gmatch("[-%w]+") do table.insert(rg_args, flag) end
-    for i, flag in ipairs(flags_list) do
+    for _, flag in ipairs(flags_list) do
         table.insert(rg_args, flag)
     end
 
@@ -171,6 +182,7 @@ local function set_state(pattern, flags, path)
     table.insert(rg_args, path)
 
     local STATE = get_state()
+    STATE.mode = 'searching'
     STATE.rg_args = rg_args
     STATE.demo_cmd = "rg " .. flags .. " " .. pattern .. " " .. path
     STATE.pattern = pattern

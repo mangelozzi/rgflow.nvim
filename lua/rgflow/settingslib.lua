@@ -26,6 +26,7 @@ local defaults = {
                 ["<leader>rg"] = "open_cword", -- open UI - search pattern = <cword>
                 ["<leader>rp"] = "open_paste", -- open UI - search pattern = First line of unnamed register as the search pattern
                 ["<leader>ra"] = "open_again", -- open UI - search pattern = Previous search pattern
+                ["<leader>rx"] = "abort",      -- close UI / abort searching / abortadding results
             },
             x = {
                 ["<leader>rg"] = "open_visual", -- open UI - search pattern = current visual selection

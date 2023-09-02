@@ -29,12 +29,60 @@ M.start = ui.start
 -- Close the current UI window
 M.close = ui.close
 
+-- Aborts - Closes the UI if open, if searching will stop, if adding results will stop
+M.abort = function()
+    local STATE = get_state()
+    if STATE.mode == 'aborting' then
+        print('Still aborting ...')
+    elseif STATE.mode == '' then
+        print('RgFlow not running.')
+    elseif STATE.mode == 'open' then
+        M.close()
+        STATE.mode = ''
+        print('Aborted UI.')
+    elseif STATE.mode == 'searching' then
+        local uv = vim.loop
+        uv.process_kill(STATE.handle, "SIGTERM")
+        STATE.mode = ''
+        STATE.results = {} -- Free up memory
+        print('Aborted searching.')
+    elseif STATE.mode == 'adding' then
+        STATE.mode = 'aborting'
+        -- Handed in quickfix.lua
+    end
+end
+
+M.show_rg_help = ui.show_rg_help
+
 -- No operation
 M.nop = function() end
 
 -- Auto complete with rgflags or buffer words or filepaths depending on the input box they are on
 -- M.auto_complete = vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<C-X><C-O>", true, true, true), "n", true)
-M.auto_complete = require('rgflow.autocomplete').auto_complete
+-- M.auto_complete = require('rgflow.autocomplete').auto_complete
+
+--- Within the input dialogue, call the appropriate auto-complete function.
+function M.auto_complete2()
+    if vim.fn.pumvisible() ~= 0 then
+        return
+    end
+    local linenr = vim.api.nvim_win_get_cursor(0)[1]
+    if linenr == 1 then
+        -- Flags line - Using completefunc
+        -- nvim_buf_set_option({buffer}, {name}, {value})
+        -- vim.api.nvim_buf_set_option(0, "completefunc", "v:lua.require('rgflow.autocomplete').rg_flags_complete")
+        vim.api.nvim_buf_set_option(0, "completefunc", "v:lua.RG_FLAGS_COMPLETE")
+        vim.api.nvim_input("<C-X><C-U>")
+    elseif linenr == 2 then
+        -- Pattern line
+        -- vim.api.nvim_input("<C-N>")
+        vim.fn.feedkeys(vim.api.nvim_replace_termcodes('<C-N>',true,nil,true), "n")
+    elseif linenr == 3 then
+        -- Filename line
+        vim.fn.feedkeys(vim.api.nvim_replace_termcodes('<C-N>',true,nil,true), "n")
+        vim.api.nvim_input("<C-X><C-F>")
+    end
+end
 
 -- Search with no UI, just pass in the required arguements, will default to:
 --  pattern = blank

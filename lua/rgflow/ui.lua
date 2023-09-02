@@ -1,43 +1,86 @@
 local M = {}
 local api = vim.api
-local rg = require('rgflow.rg')
 local utils = require('rgflow.utils')
 local search = require('rgflow.search')
 local get_settings = require('rgflow.settingslib').get_settings
 local get_state = require('rgflow.state').get_state
 
-
+--[[
 --- Within the input dialogue, call the appropriate auto-complete function.
 function M.auto_complete()
-    local linenr = api.nvim_win_get_cursor(0)[1]
     if vim.fn.pumvisible() ~= 0 then
-        api.nvim_input("<C-N>")
-    elseif linenr == 1 then
+        return
+    end
+    local linenr = api.nvim_win_get_cursor(0)[1]
+    if linenr == 1 then
         -- Flags line - Using completefunc
         -- nvim_buf_set_option({buffer}, {name}, {value})
         -- api.nvim_buf_set_option(0, "completefunc", rg.flags_complete)
         -- api.nvim_set_option_value("completefunc", "v:lua:rgflow.rg.flags_complete", {scope="local"})
+        print('set complete func')
         vim.opt_local.completefunc = "v:lua.require('rgflow.rg').flags_complete"
         -- api.nvim_input("<C-X><C-U>")
-        vim.fn.feedkeys(vim.api.nvim_replace_termcodes('<C-X><C-U>',true,nil,true), "n")
+        -- print('feeding keys')
+        -- vim.fn.feedkeys(vim.api.nvim_replace_termcodes('<C-X><C-U>',true,nil,true), "n")
     elseif linenr == 2 then
         -- Pattern line
         -- Default autocomplete is an empty string
         vim.opt_local.completefunc = ""
-        vim.fn.feedkeys(vim.api.nvim_replace_termcodes('<C-N>',true,nil,true), "n")
+        -- vim.fn.feedkeys(vim.api.nvim_replace_termcodes('<C-N>',true,nil,true), "n")
     elseif linenr == 3 then
         -- Filename line
         vim.opt_local.completefunc = "file"
-        vim.fn.feedkeys(vim.api.nvim_replace_termcodes('<C-X><C-F>',true,nil,true), "n")
+        -- vim.fn.feedkeys(vim.api.nvim_replace_termcodes('<C-X><C-F>',true,nil,true), "n")
     end
-end
+    -- Get the completions using the specified completefunc.
+    -- local completions = require("cmp").complete(findstart, base, completefunc)
 
+    vim.fn.feedkeys(vim.api.nvim_replace_termcodes('<C-X><C-U>',true,nil,true), "n")
+
+    -- -- Return the completions.
+    -- return completions
+end--]]
+
+local function setup_ui_autocommands(STATE)
+    -- Clear old auto commands
+    vim.api.nvim_clear_autocmds({group = STATE.ui_autocmd_group})
+    vim.api.nvim_create_autocmd(
+        "BufWipeout",
+        {
+            desc = "Autocommand to close the heading window when the input window is closed",
+            group = STATE.RGFLOW_UI_GROUP,
+            callback = function()
+                if vim.api.nvim_win_is_valid(STATE.winh) then
+                    vim.api.nvim_win_close(STATE.winh, true)
+                end
+                if vim.api.nvim_buf_is_valid(STATE.bufh) then
+                    vim.api.nvim_buf_delete(STATE.bufh, { force = true })
+                end
+            end,
+            buffer = STATE.bufi,
+        }
+    )
+    vim.api.nvim_create_autocmd(
+        "WinEnter",
+        {
+            desc = "If the header window get focus, change to the input window",
+            group = STATE.RGFLOW_UI_GROUP,
+            callback = function()
+                vim.fn.win_gotoid(STATE.wini)
+            end,
+            buffer = STATE.bufh,
+        }
+    )
+
+end
 
 --- Creates the input dialogue and waits for input
 -- If <CR> is pressed in normal mode, the search starts, <ESC> aborts.
 -- @param pattern - The initial pattern to place in the pattern field
 --                  when the dialogue opens.
-function M.open(pattern, flags, path)
+function M.show_ui(pattern, flags, path)
+    local STATE = get_state()
+
     pattern = pattern or ""
     flags   = flags or get_settings().cmd_flags
     path    = path or vim.fn.getcwd()
@@ -54,8 +97,8 @@ function M.open(pattern, flags, path)
     -- nvim_create_buf({listed}, {scratch})
     -- bufh / winh / widthh = heading window/buffer/width
     -- bufi / wini / widthi = input dialogue window/buffer/width
-    local bufi  = api.nvim_create_buf(false, true)
-    local bufh  = api.nvim_create_buf(false, true)
+    STATE.bufi  = api.nvim_create_buf(false, true)
+    STATE.bufh  = api.nvim_create_buf(false, true)
 
     -- Generate text content for the buffers
     -- REFER TO HERE FOR BORDER: https://www.2n.pl/blog/how-to-write-neovim-plugins-in-lua
@@ -64,8 +107,8 @@ function M.open(pattern, flags, path)
 
     -- Add text content to the buffers
     -- nvim_buf_set_lines({buffer}, {start}, {end}, {strict_indexing}, {replacement})
-    api.nvim_buf_set_lines(bufi, 0, -1, false, contenti)
-    api.nvim_buf_set_lines(bufh, 0, -1, false, contenth)
+    api.nvim_buf_set_lines(STATE.bufi, 0, -1, false, contenti)
+    api.nvim_buf_set_lines(STATE.bufh, 0, -1, false, contenth)
 
     -- Window config
     local configi = {relative='editor', anchor='SW', width=widthi, height=3, col=10, row=bottom,  style='minimal'}
@@ -73,20 +116,20 @@ function M.open(pattern, flags, path)
 
     -- Create windows
     -- nvim_open_win({buffer}, {enter}, {config})
-    local winh = api.nvim_open_win(bufh, false, configh)
-    local wini = api.nvim_open_win(bufi, true,  configi) -- open input dialogue after so its ontop
+    STATE.winh = api.nvim_open_win(STATE.bufh, false, configh)
+    STATE.wini = api.nvim_open_win(STATE.bufi, true,  configi) -- open input dialogue after so its ontop
 
     -- Setup Input window
     ---------------------
-    api.nvim_win_set_option(wini, 'winhl', 'Normal:RgFlowInputBg')
-    api.nvim_buf_set_option(bufi, 'bufhidden', 'wipe')
-    api.nvim_buf_set_option(bufi, 'filetype', 'rgflow')
+    api.nvim_win_set_option(STATE.wini, 'winhl', 'Normal:RgFlowInputBg')
+    api.nvim_buf_set_option(STATE.bufi, 'bufhidden', 'wipe')
+    api.nvim_buf_set_option(STATE.bufi, 'filetype', 'rgflow')
     -- Set the priority to 0 so a incsearch highlights the input window too
-    vim.fn.matchaddpos('RgFlowInputFlags',   {1}, 0, -1, {window=wini})
-    vim.fn.matchaddpos('RgFlowInputPattern', {2}, 0, -1, {window=wini})
-    vim.fn.matchaddpos('RgFlowInputPath',    {3}, 0, -1, {window=wini})
+    vim.fn.matchaddpos('RgFlowInputFlags',   {1}, 0, -1, {window=STATE.wini})
+    vim.fn.matchaddpos('RgFlowInputPattern', {2}, 0, -1, {window=STATE.wini})
+    vim.fn.matchaddpos('RgFlowInputPath',    {3}, 0, -1, {window=STATE.wini})
     -- Position the cursor after the pattern
-    api.nvim_win_set_cursor(wini, {2, string.len(pattern)})
+    api.nvim_win_set_cursor(STATE.wini, {2, string.len(pattern)})
     -- If the pattern is blank, enter insert mode
     if string.len(pattern) == 0 then
         api.nvim_command("startinsert")
@@ -94,24 +137,35 @@ function M.open(pattern, flags, path)
 
     -- Setup Heading window
     -----------------------
-    api.nvim_buf_set_option(bufh, 'bufhidden', 'wipe')
-    -- Autocommand to close the heading window when the input window is closed
-    api.nvim_command('au BufWipeout <buffer> exe "silent bwipeout! '..bufh..'"')
-    vim.fn.matchaddpos('RgFlowHeadLine', {1}, 11, -1, {window=winh})
+    api.nvim_buf_set_option(STATE.bufh, 'bufhidden', 'wipe')
+    vim.fn.matchaddpos('RgFlowHeadLine', {1}, 11, -1, {window=STATE.winh})
     -- Instead of setting the window normal, the headings are highlighted with match add
     -- The advantage of this is when one incsearchs for a value which happen to be a
     -- heading, it will not be highlighted.
-    vim.fn.matchaddpos('RgFlowHead',     {2, 3, 4}, 11, -1, {window=winh})
-    vim.fn.matchaddpos('RgFlowInputBg',  {{2, widthh}, {3, widthh}, {4, widthh}}, 12, -1, {window=winh})
+    vim.fn.matchaddpos('RgFlowHead',     {2, 3, 4}, 11, -1, {window=STATE.winh})
+    vim.fn.matchaddpos('RgFlowInputBg',  {{2, widthh}, {3, widthh}, {4, widthh}}, 12, -1, {window=STATE.winh})
     -- IF someone person ended up on the heading buffer, if <ESC> is pressed, abort the search
     -- Note the keymaps for the input dialogue are set in the filetype plugin
-    api.nvim_buf_set_keymap(bufh, "n", "<ESC>", "<cmd>lua rgflow.abort_start()<CR>", {noremap=true})
+    api.nvim_buf_set_keymap(STATE.bufh, "n", "<ESC>", "<cmd>lua rgflow.abort_start()<CR>", {noremap=true})
 
     api.nvim_command('redraw!')
-    local state = get_state()
-    state.bufi = bufi
-    state.wini = wini
-    state.winh = winh
+    STATE.mode = 'open'
+    setup_ui_autocommands(STATE)
+end
+
+function M.open(pattern, flags, path)
+    local STATE = get_state()
+    if STATE.mode == '' then
+        M.show_ui(pattern, flags, path)
+        return
+    elseif STATE.mode == 'open' then
+        print('GO TO OPEN')
+        vim.fn.win_gotoid(STATE.wini)
+    elseif STATE.mode == 'searching' then
+        print("Currently searching... First Run the abort function: require('rgflow').abort")
+    elseif STATE.mode == 'adding' then
+        print("Currently adding results ... First Run the abort function: require('rgflow').abort")
+    end
 end
 
 function M.start()
@@ -132,7 +186,6 @@ function M.start()
         return
     end
 
-    -- api.nvim_win_close(wini, true)
     -- Closing the input window triggers an Autocmd to close the heading window
     -- see `api.nvim_command('au BufWipeout <buffer> exe "silent bwipeout! '..bufh..'"')` above
     api.nvim_win_close(get_state().wini, true)
@@ -143,7 +196,9 @@ end
 
 --- Closes the input dialogue
 function M.close()
-    api.nvim_win_close(get_state().wini, true)
+    local STATE = get_state()
+    api.nvim_win_close(STATE.wini, true)
+    STATE.mode = ''
 end
 
 

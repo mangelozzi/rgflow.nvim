@@ -23,6 +23,12 @@ vim.cmd("setlocal " .. get_prefix(qf_settings.relative_number) .. "relativenumbe
 vim.cmd("setlocal " .. get_prefix(qf_settings.wrap) .. "wrap")
 vim.cmd("setlocal colorcolumn=" .. qf_settings.color_column)
 
+vim.opt.complete = ".,w,b,]"  -- Default auto complete, but exclude unloaded buffers
+-- Can vim.opt.'completeopt' to have a better completion experience
+-- Refer to init file, and waiting for https://github.com/nvim-lua/completion-nvim/issues/235
+vim.opt.completeopt = "menuone,noinsert,noselect"
+
+
 if qf_settings.disable_edit_alt_file then
     vim.keymap.set({"", "!"}, "<C-^>", "<NOP>", {noremap = true})
     vim.keymap.set({"", "!"}, "<C-S-^>", "<NOP>", {noremap = true})

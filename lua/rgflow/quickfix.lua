@@ -95,6 +95,11 @@ end
 
 local function processChunk()
     local STATE = get_state()
+    if STATE.mode == 'aborting' then
+        print('Aborted adding results.')
+        STATE.mode = ''
+        return
+    end
     local start_idx = STATE.lines_added + 1
     local end_idx = math.min(STATE.lines_added + CHUNK_SIZE, #STATE.results)
     local chunk_rows = {unpack(STATE.results, start_idx, end_idx)}
@@ -109,6 +114,8 @@ local function processChunk()
         print(utils.get_done_msg(STATE))
         apply_search_term_highlight()
         apply_pattern_highlights()
+        STATE.mode = ''
+        STATE.results = {}  -- free up memory
     end
 end
 
@@ -118,6 +125,7 @@ M.populate_with_results = function()
     -- Refer to `:help setqflist`
 
     local STATE = get_state()
+    STATE.mode = 'adding'
     if STATE.match_cnt > 0 then
         api.nvim_command('copen')
         local title="  "..STATE.pattern.." (".. #STATE.results .. ")   "..STATE.path
