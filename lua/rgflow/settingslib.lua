@@ -35,6 +35,7 @@ local defaults = {
             n = {
                 ["<CR>"]  = "start", -- With the ui open, start a search with the current parameters
                 ["<ESC>"] = "close", -- With the ui open, disgard and close the UI window
+                ["?"]     = "show_rg_help", -- Show the rg help in a floating window
                 ["<BS>"]  = "nop",   -- No operation
                 ["<C-^>"] = "nop",   -- No operation
                 ["<C-6>"] = "nop",   -- No operation

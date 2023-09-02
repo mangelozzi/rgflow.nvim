@@ -60,7 +60,7 @@ function M.open(pattern, flags, path)
     -- Generate text content for the buffers
     -- REFER TO HERE FOR BORDER: https://www.2n.pl/blog/how-to-write-neovim-plugins-in-lua
     local contenti = {flags, pattern, path}
-    local contenth = {string.rep("▄", width), " FLAGS    ", " PATTERN  ", " PATH     "}
+    local contenth = {string.rep(get_settings().ui_top_line_char, width), " FLAGS    ", " PATTERN  ", " PATH     "}
 
     -- Add text content to the buffers
     -- nvim_buf_set_lines({buffer}, {start}, {end}, {strict_indexing}, {replacement})
@@ -145,5 +145,58 @@ end
 function M.close()
     api.nvim_win_close(get_state().wini, true)
 end
+
+
+-- Define a function to create a floating terminal buffer and run a command
+function M.show_rg_help()
+   -- Get the current Neovim window dimensions
+    local vim_width = vim.api.nvim_get_option("columns")
+    local vim_height = vim.api.nvim_get_option("lines")
+
+    -- Calculate the desired dimensions based on your criteria
+    local desired_width = math.min(math.floor(vim_width * 0.9), 100)
+    local desired_height = math.min(math.floor(vim_height * 0.8), 40)
+
+    -- Create a new floating terminal buffer
+    local buf = vim.api.nvim_create_buf(false, true)
+
+    -- Create a floating window for the terminal buffer
+    -- nvim_open_win({buffer}, {enter}, {config})
+    local win = vim.api.nvim_open_win(buf, true, {
+        width = desired_width,
+        height = desired_height,
+        relative = "editor",
+        row = math.floor((vim_height - desired_height) / 2) - 4,
+        col = math.floor((vim_width - desired_width) / 2),
+        style = "minimal",
+        border = "rounded",
+        title = " Ripgrep Help ",
+    })
+    -- Run the command in the terminal buffer
+    vim.fn.termopen("rg --help")
+
+    -- Set the terminal buffer to insert mode (for user input)
+    vim.api.nvim_buf_set_option(buf, 'modifiable', true)
+    vim.api.nvim_buf_set_option(buf, 'bufhidden', 'wipe')
+    vim.api.nvim_buf_set_option(buf, 'filetype', 'nofile')
+
+    local lines = vim.fn.getbufline(buf, 1, "$")
+    -- Remove the last line ... "[Process exited 0]"
+    vim.print(lines)
+    print('end', lines[#lines])
+    print('end -1', lines[#lines])
+    print('end -2', lines[#lines])
+    table.remove(lines, #lines-1)
+    vim.fn.setbufline(buf, 1, lines)
+
+    -- Set the highlight group for the popup window
+    vim.api.nvim_win_set_option(win, 'winhl', 'Normal:Normal')
+    vim.api.nvim_win_set_cursor(win, {1, 0})
+
+    -- Pressing q or <ESC> closing the window (or they can just close the window)
+    vim.keymap.set({'', '!'}, 'q', '<C-W><C-C>', { buffer = buf, silent = true})
+    vim.keymap.set({'', '!'}, '<ESC>', '<C-W><C-C>', { buffer = buf, silent = true})
+end
+
 
 return M
