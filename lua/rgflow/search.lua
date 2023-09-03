@@ -199,6 +199,15 @@ function M.run(pattern, flags, path)
     local rg_cmd = "lua require('rgflow').open([[" .. pattern .. "]], [[" .. flags .. "]], [[" .. path .. "]])"
     vim.fn.histadd("cmd", rg_cmd)
 
+    local rg_installed = vim.fn.executable('rg') ~= 0
+    if not rg_installed then
+        local STATE = get_state()
+        STATE.mode = ''
+        msg = "rg is not avilable on the path, have you installed RipGrep?"
+        schedule_print(msg, true)
+        return
+    end
+
     -- Global STATE used by the async job
     set_state(pattern, flags, path)
     schedule_print(get_status_msg(get_state()), false)

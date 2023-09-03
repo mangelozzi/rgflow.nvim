@@ -3,9 +3,18 @@ local utils = require('rgflow.utils')
 local ui = require('rgflow.ui')
 local quickfix = require('rgflow.quickfix')
 local search = require('rgflow.search')
+local get_state = require('rgflow.state').get_state
 
 -- Exposed API
 M.setup = require('rgflow.settingslib').setup
+
+-- open UI - Pass in args: pattern, flags, path
+-- Unsupplied args will default to:
+--  pattern = blank
+--  flags = previously used
+--  path = PWD
+-- e.g. require('rgflow').open('foo', '--smart-case --no-ignore', '/home/bob/stuff')
+M.open = ui.open
 
 -- open UI - search pattern = blank
 M.open_blank = ui.open
@@ -28,6 +37,11 @@ M.start = ui.start
 
 -- Close the current UI window
 M.close = ui.close
+
+-- Skips the UI and executes the search immediately
+-- Call signature: run(pattern, flags, path)
+-- e.g. require('rgflow').search('foo', '--smart-case --no-ignore', '/home/bob/stuff')
+M.search = search.run
 
 -- Aborts - Closes the UI if open, if searching will stop, if adding results will stop
 M.abort = function()
@@ -57,10 +71,6 @@ M.show_rg_help = ui.show_rg_help
 -- No operation
 M.nop = function() end
 
--- Auto complete with rgflags or buffer words or filepaths depending on the input box they are on
--- M.auto_complete = vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<C-X><C-O>", true, true, true), "n", true)
--- M.auto_complete = require('rgflow.autocomplete').auto_complete
-
 --- Within the input dialogue, call the appropriate auto-complete function.
 function M.auto_complete2()
     if vim.fn.pumvisible() ~= 0 then
@@ -84,11 +94,6 @@ function M.auto_complete2()
     end
 end
 
--- Search with no UI, just pass in the required arguements, will default to:
---  pattern = blank
---  flags = previously used
---  path = PWD
-M.search = function(pattern, flags, path) search.run(pattern, flags, path) end
 
 M.qf_delete         = function() require('rgflow.quickfix').delete_operator(vim.fn.mode()) end
 M.qf_delete_line    = function() require('rgflow.quickfix').delete_operator('line') end
@@ -97,5 +102,10 @@ M.qf_mark           = function() require('rgflow.quickfix').mark_operator(true, 
 M.qf_mark_visual    = function() require('rgflow.quickfix').mark_operator(true, vim.fn.mode()) end
 M.qf_unmark         = function() require('rgflow.quickfix').mark_operator(false, 'line') end
 M.qf_unmark_visual  = function() require('rgflow.quickfix').mark_operator(false, vim.fn.mode()) end
+
+-- Auto complete with rgflags or buffer words or filepaths depending on the input box they are on
+-- M.auto_complete = vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<C-X><C-O>", true, true, true), "n", true)
+M.auto_complete = require('rgflow.autocomplete').auto_complete
+RGFLOW_AUTO_COMPLETE = require('rgflow.autocomplete').auto_complete
 
 return M
