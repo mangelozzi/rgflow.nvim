@@ -156,8 +156,6 @@ local function set_state(pattern, flags, path)
     get_settings().cmd_flags = flags
 
     -- Default flags always included
-    -- For highlighting { ZS_ZE.."$0"..ZS_ZE }
-    -- local rg_args = {"--vimgrep", "--no-messages", "--replace", zs_ze .. "$0" .. zs_ze}
     local rg_args = {"--vimgrep", "--no-messages"}
 
     -- 1. Add the flags first to the Ripgrep command

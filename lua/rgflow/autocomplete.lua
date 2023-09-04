@@ -105,21 +105,16 @@ end
 -- If add {info=desc} is added to the dict, then makes an ugly window appear
 local function get_rg_help_matches(base)
     local HELP_DATA = get_rg_help_data()
-    -- print("---------")
-    -- print("base is", base, 'type', type(base))
     if not base then
-        -- print("base was falsey")
         return HELP_DATA
     end
 
     local flag_data = {}
     for _, data in ipairs(HELP_DATA) do
         if string.find(data["word"], base, 0, false) then
-            -- print("added match")
             table.insert(flag_data, {word = data["word"], menu = data["menu"]})
         end
     end
-    -- vim.print('flag_data', flag_data)
     return flag_data
 end
 
@@ -149,7 +144,6 @@ end
 
 function M.rg_flags_complete(findstart, base)
     if findstart == 1 then
-        -- print("auto atuo plete333")
         local pos = api.nvim_win_get_cursor(0)
         local row = pos[1]
         local col = pos[2]

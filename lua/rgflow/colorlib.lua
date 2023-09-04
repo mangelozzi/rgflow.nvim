@@ -156,10 +156,4 @@ function M.get_pattern_color(is_ui_light)
     -- return M.get_contrasting_by_rgb(255,255,0, is_ui_light)
 end
 
--- vim.cmd("mess clear")
--- print('state fg', M.get_group_fg_as_rgb(0, 'StatusLine'))
--- print("-----------------")
--- -- print("is bg bright", M.get_bg_bright_color())
--- vim.print('out', M.auto_adjust_contrast(43, 43, 43, true))
-
 return M

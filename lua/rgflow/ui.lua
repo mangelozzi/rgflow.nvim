@@ -219,10 +219,6 @@ function M.show_rg_help()
 
     local lines = vim.fn.getbufline(buf, 1, "$")
     -- Remove the last line ... "[Process exited 0]"
-    vim.print(lines)
-    print("end", lines[#lines])
-    print("end -1", lines[#lines])
-    print("end -2", lines[#lines])
     table.remove(lines, #lines - 1)
     vim.fn.setbufline(buf, 1, lines)
 
