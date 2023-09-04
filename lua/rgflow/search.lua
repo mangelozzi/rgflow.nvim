@@ -156,7 +156,8 @@ local function set_state(pattern, flags, path)
     get_settings().cmd_flags = flags
 
     -- Default flags always included
-    local rg_args = {"--vimgrep", "--no-messages"}
+    -- local rg_args = {"--vimgrep", "--no-messages"}
+    local rg_args = {"--vimgrep"}
 
     -- 1. Add the flags first to the Ripgrep command
     local flags_list = vim.split(flags, " ")
