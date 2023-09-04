@@ -151,7 +151,7 @@ local function get_default_colors()
     -- local STATE = require('rgflow.state').get_state()
     return {
         -- Recommend not setting a BG so it uses the current lines BG
-        RgFlowQfPattern     = { fg="fg", bg="bg"},
+        RgFlowQfPattern     = { bg=colorlib.get_group_bg(0, 'QuickFixLine'), fg=colorlib.get_matches_color(not is_ui_light), bold=true},
         RgFlowHead          = { fg="fg", bg="bg"},
         RgFlowHeadLine      = { bg="bg", fg=colorlib.get_group_bg(0, 'StatusLine')},
         -- Even though just a background, add the foreground or else when

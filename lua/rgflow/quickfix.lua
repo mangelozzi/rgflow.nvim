@@ -37,7 +37,7 @@ end
 -- The usual /term highlights
 local function apply_search_term_highlight()
     -- Remember 0 is considered true in lua
-    if get_settings().quickfix.incsearch_after then
+    if get_settings().incsearch_after then
         -- Set incremental search to be the same value as pattern
         vim.fn.setreg("/", get_state().pattern, "c")
         -- Trigger the highlighting of search by turning hl on

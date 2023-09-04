@@ -156,4 +156,13 @@ function M.get_pattern_color(is_ui_light)
     -- return M.get_contrasting_by_rgb(255,255,0, is_ui_light)
 end
 
+function M.get_matches_color(is_ui_light)
+    for _, group_name in pairs({'Statement', 'Identifier'}) do
+        if M.get_hi_group_exists(0, group_name) then
+            return M.get_contrasting_by_group(0, group_name, is_ui_light)
+        end
+    end
+    return M.get_contrasting_by_rgb(255,255,0, is_ui_light)
+end
+
 return M
