@@ -138,7 +138,7 @@ function M.open(pattern, flags, path)
         M.show_ui(pattern, flags, path)
         return
     elseif STATE.mode == "open" then
-        print("GO TO OPEN")
+        print("Switched to currently open RgFlow")
         vim.fn.win_gotoid(STATE.wini)
     elseif STATE.mode == "searching" then
         print("Currently searching... First Run the abort function: require('rgflow').abort")

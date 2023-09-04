@@ -113,6 +113,7 @@ local function on_exit()
             end
         )
     else
+        STATE.mode = ""
         schedule_print(utils.get_done_msg(STATE), true)
     end
 end

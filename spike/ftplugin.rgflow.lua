@@ -17,3 +17,7 @@ vim.api.nvim_create_autocmd(
         end
     }
 )
+
+
+-- vim.opt_local.completefunc = "v:lua.require('rgflow.autocomplete').auto_complete" -- DOES NOT WORK, args always 0 for base start
+-- vim.api.nvim_buf_set_option(0, "completefunc", "v:lua.RG_FLAGS_COMPLETE")

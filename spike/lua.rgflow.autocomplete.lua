@@ -59,4 +59,28 @@ function M.auto_complete()
 end
 
 
+--- Within the input dialogue, call the appropriate auto-complete function.
+function M.auto_complete2()
+    if vim.fn.pumvisible() ~= 0 then
+        return
+    end
+    local linenr = vim.api.nvim_win_get_cursor(0)[1]
+    if linenr == 1 then
+        -- Flags line - Using completefunc
+        -- nvim_buf_set_option({buffer}, {name}, {value})
+        -- vim.api.nvim_buf_set_option(0, "completefunc", "v:lua.require('rgflow.autocomplete').rg_flags_complete")
+        vim.api.nvim_buf_set_option(0, "completefunc", "v:lua.RG_FLAGS_COMPLETE")
+        vim.api.nvim_input("<C-X><C-U>")
+    elseif linenr == 2 then
+        -- Pattern line
+        -- vim.api.nvim_input("<C-N>")
+        vim.fn.feedkeys(vim.api.nvim_replace_termcodes("<C-N>", true, nil, true), "n")
+    elseif linenr == 3 then
+        -- Filename line
+        vim.fn.feedkeys(vim.api.nvim_replace_termcodes("<C-N>", true, nil, true), "n")
+        vim.api.nvim_input("<C-X><C-F>")
+    end
+end
+
+
 return M
