@@ -1,10 +1,9 @@
 local M = {}
 local api = vim.api
-local utils = require('rgflow.utils')
-local search = require('rgflow.search')
-local get_settings = require('rgflow.settingslib').get_settings
-local get_state = require('rgflow.state').get_state
-
+local utils = require("rgflow.utils")
+local search = require("rgflow.search")
+local get_settings = require("rgflow.settingslib").get_settings
+local get_state = require("rgflow.state").get_state
 
 local function setup_ui_autocommands(STATE)
     -- Clear old auto commands
@@ -19,10 +18,10 @@ local function setup_ui_autocommands(STATE)
                     vim.api.nvim_win_close(STATE.winh, true)
                 end
                 if vim.api.nvim_buf_is_valid(STATE.bufh) then
-                    vim.api.nvim_buf_delete(STATE.bufh, { force = true })
+                    vim.api.nvim_buf_delete(STATE.bufh, {force = true})
                 end
             end,
-            buffer = STATE.bufi,
+            buffer = STATE.bufi
         }
     )
     vim.api.nvim_create_autocmd(
@@ -33,10 +32,9 @@ local function setup_ui_autocommands(STATE)
             callback = function()
                 vim.fn.win_gotoid(STATE.wini)
             end,
-            buffer = STATE.bufh,
+            buffer = STATE.bufh
         }
     )
-
 end
 
 --- Creates the input dialogue and waits for input
@@ -47,23 +45,23 @@ function M.show_ui(pattern, flags, path)
     local STATE = get_state()
 
     pattern = pattern or ""
-    flags   = flags or get_settings().cmd_flags
-    path    = path or vim.fn.getcwd()
+    flags = flags or get_settings().cmd_flags
+    path = path or vim.fn.getcwd()
 
     -- get the editor's max width and height
-    local width  = api.nvim_get_option("columns")
+    local width = api.nvim_get_option("columns")
     local height = api.nvim_get_option("lines")
     local widthh = 10
     local widthi = width - widthh
     -- Height includes status line (1) and cmdline height
-    local bottom = height - 1 - api.nvim_get_option('cmdheight')
+    local bottom = height - 1 - api.nvim_get_option("cmdheight")
 
     -- Create Buffers
     -- nvim_create_buf({listed}, {scratch})
     -- bufh / winh / widthh = heading window/buffer/width
     -- bufi / wini / widthi = input dialogue window/buffer/width
-    STATE.bufi  = api.nvim_create_buf(false, true)
-    STATE.bufh  = api.nvim_create_buf(false, true)
+    STATE.bufi = api.nvim_create_buf(false, true)
+    STATE.bufh = api.nvim_create_buf(false, true)
 
     -- Generate text content for the buffers
     -- REFER TO HERE FOR BORDER: https://www.2n.pl/blog/how-to-write-neovim-plugins-in-lua
@@ -76,23 +74,39 @@ function M.show_ui(pattern, flags, path)
     api.nvim_buf_set_lines(STATE.bufh, 0, -1, false, contenth)
 
     -- Window config
-    local configi = {relative='editor', anchor='SW', width=widthi, height=3, col=10, row=bottom,  style='minimal'}
-    local configh = {relative='editor', anchor='SW', width=width,  height=4, col=0,  row=bottom,  style='minimal'}
+    local configi = {
+        relative = "editor",
+        anchor = "SW",
+        width = widthi,
+        height = 3,
+        col = 10,
+        row = bottom,
+        style = "minimal"
+    }
+    local configh = {
+        relative = "editor",
+        anchor = "SW",
+        width = width,
+        height = 4,
+        col = 0,
+        row = bottom,
+        style = "minimal"
+    }
 
     -- Create windows
     -- nvim_open_win({buffer}, {enter}, {config})
     STATE.winh = api.nvim_open_win(STATE.bufh, false, configh)
-    STATE.wini = api.nvim_open_win(STATE.bufi, true,  configi) -- open input dialogue after so its ontop
+    STATE.wini = api.nvim_open_win(STATE.bufi, true, configi) -- open input dialogue after so its ontop
 
     -- Setup Input window
     ---------------------
-    api.nvim_win_set_option(STATE.wini, 'winhl', 'Normal:RgFlowInputBg')
-    api.nvim_buf_set_option(STATE.bufi, 'bufhidden', 'wipe')
-    api.nvim_buf_set_option(STATE.bufi, 'filetype', 'rgflow')
+    api.nvim_win_set_option(STATE.wini, "winhl", "Normal:RgFlowInputBg")
+    api.nvim_buf_set_option(STATE.bufi, "bufhidden", "wipe")
+    api.nvim_buf_set_option(STATE.bufi, "filetype", "rgflow")
     -- Set the priority to 0 so a incsearch highlights the input window too
-    vim.fn.matchaddpos('RgFlowInputFlags',   {1}, 0, -1, {window=STATE.wini})
-    vim.fn.matchaddpos('RgFlowInputPattern', {2}, 0, -1, {window=STATE.wini})
-    vim.fn.matchaddpos('RgFlowInputPath',    {3}, 0, -1, {window=STATE.wini})
+    vim.fn.matchaddpos("RgFlowInputFlags", {1}, 0, -1, {window = STATE.wini})
+    vim.fn.matchaddpos("RgFlowInputPattern", {2}, 0, -1, {window = STATE.wini})
+    vim.fn.matchaddpos("RgFlowInputPath", {3}, 0, -1, {window = STATE.wini})
     -- Position the cursor after the pattern
     api.nvim_win_set_cursor(STATE.wini, {2, string.len(pattern)})
     -- If the pattern is blank, enter insert mode
@@ -102,33 +116,33 @@ function M.show_ui(pattern, flags, path)
 
     -- Setup Heading window
     -----------------------
-    api.nvim_buf_set_option(STATE.bufh, 'bufhidden', 'wipe')
-    vim.fn.matchaddpos('RgFlowHeadLine', {1}, 11, -1, {window=STATE.winh})
+    api.nvim_buf_set_option(STATE.bufh, "bufhidden", "wipe")
+    vim.fn.matchaddpos("RgFlowHeadLine", {1}, 11, -1, {window = STATE.winh})
     -- Instead of setting the window normal, the headings are highlighted with match add
     -- The advantage of this is when one incsearchs for a value which happen to be a
     -- heading, it will not be highlighted.
-    vim.fn.matchaddpos('RgFlowHead',     {2, 3, 4}, 11, -1, {window=STATE.winh})
-    vim.fn.matchaddpos('RgFlowInputBg',  {{2, widthh}, {3, widthh}, {4, widthh}}, 12, -1, {window=STATE.winh})
+    vim.fn.matchaddpos("RgFlowHead", {2, 3, 4}, 11, -1, {window = STATE.winh})
+    vim.fn.matchaddpos("RgFlowInputBg", {{2, widthh}, {3, widthh}, {4, widthh}}, 12, -1, {window = STATE.winh})
     -- IF someone person ended up on the heading buffer, if <ESC> is pressed, abort the search
     -- Note the keymaps for the input dialogue are set in the filetype plugin
-    api.nvim_buf_set_keymap(STATE.bufh, "n", "<ESC>", "<cmd>lua rgflow.abort_start()<CR>", {noremap=true})
+    api.nvim_buf_set_keymap(STATE.bufh, "n", "<ESC>", "<cmd>lua rgflow.abort_start()<CR>", {noremap = true})
 
-    api.nvim_command('redraw!')
-    STATE.mode = 'open'
+    api.nvim_command("redraw!")
+    STATE.mode = "open"
     setup_ui_autocommands(STATE)
 end
 
 function M.open(pattern, flags, path)
     local STATE = get_state()
-    if STATE.mode == '' then
+    if STATE.mode == "" then
         M.show_ui(pattern, flags, path)
         return
-    elseif STATE.mode == 'open' then
-        print('GO TO OPEN')
+    elseif STATE.mode == "open" then
+        print("GO TO OPEN")
         vim.fn.win_gotoid(STATE.wini)
-    elseif STATE.mode == 'searching' then
+    elseif STATE.mode == "searching" then
         print("Currently searching... First Run the abort function: require('rgflow').abort")
-    elseif STATE.mode == 'adding' then
+    elseif STATE.mode == "adding" then
         print("Currently adding results ... First Run the abort function: require('rgflow').abort")
     end
 end
@@ -158,18 +172,16 @@ function M.start()
     search.run(pattern, flags, path)
 end
 
-
 --- Closes the input dialogue
 function M.close()
     local STATE = get_state()
     api.nvim_win_close(STATE.wini, true)
-    STATE.mode = ''
+    STATE.mode = ""
 end
-
 
 -- Define a function to create a floating terminal buffer and run a command
 function M.show_rg_help()
-   -- Get the current Neovim window dimensions
+    -- Get the current Neovim window dimensions
     local vim_width = vim.api.nvim_get_option("columns")
     local vim_height = vim.api.nvim_get_option("lines")
 
@@ -182,41 +194,45 @@ function M.show_rg_help()
 
     -- Create a floating window for the terminal buffer
     -- nvim_open_win({buffer}, {enter}, {config})
-    local win = vim.api.nvim_open_win(buf, true, {
-        width = desired_width,
-        height = desired_height,
-        relative = "editor",
-        row = math.floor((vim_height - desired_height) / 2) - 4,
-        col = math.floor((vim_width - desired_width) / 2),
-        style = "minimal",
-        border = "rounded",
-        title = " Ripgrep Help ",
-    })
+    local win =
+        vim.api.nvim_open_win(
+        buf,
+        true,
+        {
+            width = desired_width,
+            height = desired_height,
+            relative = "editor",
+            row = math.floor((vim_height - desired_height) / 2) - 4,
+            col = math.floor((vim_width - desired_width) / 2),
+            style = "minimal",
+            border = "rounded",
+            title = " Ripgrep Help "
+        }
+    )
     -- Run the command in the terminal buffer
     vim.fn.termopen("rg --help")
 
     -- Set the terminal buffer to insert mode (for user input)
-    vim.api.nvim_buf_set_option(buf, 'modifiable', true)
-    vim.api.nvim_buf_set_option(buf, 'bufhidden', 'wipe')
-    vim.api.nvim_buf_set_option(buf, 'filetype', 'nofile')
+    vim.api.nvim_buf_set_option(buf, "modifiable", true)
+    vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
+    vim.api.nvim_buf_set_option(buf, "filetype", "nofile")
 
     local lines = vim.fn.getbufline(buf, 1, "$")
     -- Remove the last line ... "[Process exited 0]"
     vim.print(lines)
-    print('end', lines[#lines])
-    print('end -1', lines[#lines])
-    print('end -2', lines[#lines])
-    table.remove(lines, #lines-1)
+    print("end", lines[#lines])
+    print("end -1", lines[#lines])
+    print("end -2", lines[#lines])
+    table.remove(lines, #lines - 1)
     vim.fn.setbufline(buf, 1, lines)
 
     -- Set the highlight group for the popup window
-    vim.api.nvim_win_set_option(win, 'winhl', 'Normal:Normal')
+    vim.api.nvim_win_set_option(win, "winhl", "Normal:Normal")
     vim.api.nvim_win_set_cursor(win, {1, 0})
 
     -- Pressing q or <ESC> closing the window (or they can just close the window)
-    vim.keymap.set({'', '!'}, 'q', '<C-W><C-C>', { buffer = buf, silent = true})
-    vim.keymap.set({'', '!'}, '<ESC>', '<C-W><C-C>', { buffer = buf, silent = true})
+    vim.keymap.set({"", "!"}, "q", "<C-W><C-C>", {buffer = buf, silent = true})
+    vim.keymap.set({"", "!"}, "<ESC>", "<C-W><C-C>", {buffer = buf, silent = true})
 end
-
 
 return M

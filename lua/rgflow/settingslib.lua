@@ -1,7 +1,7 @@
 local M = {}
 M.SETTINGS = {}
 local UI_GROUP = 0
-local colorlib = require('rgflow.colorlib')
+local colorlib = require("rgflow.colorlib")
 
 M.RgFlowAutoCmdGroup = vim.api.nvim_create_augroup("RgFlowAutoCmdGroup", {clear = true})
 

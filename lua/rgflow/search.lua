@@ -30,7 +30,7 @@ local function schedule_print(msg, echom)
 end
 
 local function get_status_msg(STATE)
-    return " Searching ... " .. STATE.match_cnt .. " result" .. (STATE.match_cnt ~= 1 and 's' or '')
+    return " Searching ... " .. STATE.match_cnt .. " result" .. (STATE.match_cnt ~= 1 and "s" or "")
 end
 
 --- The stderr handler for the spawned job
@@ -42,7 +42,7 @@ local function on_stderr(err, data)
         return
     end
     local STATE = get_state()
-    if STATE.mode ~= 'searching' then
+    if STATE.mode ~= "searching" then
         return
     end
 
@@ -63,7 +63,7 @@ end
 -- @param err and data - Refer to module doc string at top of this file.
 local function on_stdout(err, data)
     local STATE = get_state()
-    if STATE.mode ~= 'searching' then
+    if STATE.mode ~= "searching" then
         return
     end
 
@@ -95,7 +95,7 @@ end
 --- The handler for when the spawned job exits
 local function on_exit()
     local STATE = get_state()
-    if STATE.mode ~= 'searching' then
+    if STATE.mode ~= "searching" then
         -- Search was aborted
         return
     end
@@ -182,7 +182,7 @@ local function set_state(pattern, flags, path)
     table.insert(rg_args, path)
 
     local STATE = get_state()
-    STATE.mode = 'searching'
+    STATE.mode = "searching"
     STATE.rg_args = rg_args
     STATE.demo_cmd = "rg " .. flags .. " " .. pattern .. " " .. path
     STATE.pattern = pattern
@@ -199,10 +199,10 @@ function M.run(pattern, flags, path)
     local rg_cmd = "lua require('rgflow').open([[" .. pattern .. "]], [[" .. flags .. "]], [[" .. path .. "]])"
     vim.fn.histadd("cmd", rg_cmd)
 
-    local rg_installed = vim.fn.executable('rg') ~= 0
+    local rg_installed = vim.fn.executable("rg") ~= 0
     if not rg_installed then
         local STATE = get_state()
-        STATE.mode = ''
+        STATE.mode = ""
         msg = "rg is not avilable on path, have you installed RipGrep?"
         schedule_print(msg, true)
         return

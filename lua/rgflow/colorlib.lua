@@ -13,7 +13,6 @@ local function rgb_to_hex(r, g, b)
     return hex
 end
 
-
 local function hex_to_rgb(hex_color)
     -- Remove the '#' if present in the color string
     local color_clean = hex_color:gsub("#", "")
@@ -21,9 +20,8 @@ local function hex_to_rgb(hex_color)
     local r = tonumber(color_clean:sub(1, 2), 16) / 255
     local g = tonumber(color_clean:sub(3, 4), 16) / 255
     local b = tonumber(color_clean:sub(5, 6), 16) / 255
-    return r,g,b
+    return r, g, b
 end
-
 
 local function band(a, b)
     local result = 0
@@ -49,16 +47,14 @@ local function bit24_to_rgb(color_value)
     return r, g, b
 end
 
-
 function M.get_hi_group_exists(ns_id, name)
-    local group_info = vim.api.nvim_get_hl(ns_id, {name= name})
+    local group_info = vim.api.nvim_get_hl(ns_id, {name = name})
     -- next will return nil if an empty dict, else a value
     return next(group_info)
 end
 
-
 function M.get_group_fg(ns_id, group_name)
-    return vim.api.nvim_get_hl(ns_id, {name=group_name}).fg
+    return vim.api.nvim_get_hl(ns_id, {name = group_name}).fg
 end
 function M.get_group_fg_as_rgb(ns_id, group_name)
     local bit24 = M.get_group_fg(ns_id, group_name)
@@ -69,9 +65,8 @@ function M.get_group_fg_as_hex(ns_id, group_name)
     return rgb_to_hex(r, g, b)
 end
 
-
 function M.get_group_bg(ns_id, group_name)
-    return vim.api.nvim_get_hl(ns_id, {name=group_name}).bg
+    return vim.api.nvim_get_hl(ns_id, {name = group_name}).bg
 end
 function M.get_group_bg_as_rgb(ns_id, group_name)
     local bit24 = M.get_group_bg(ns_id, group_name)
@@ -82,14 +77,12 @@ function M.get_group_bg_as_hex(ns_id, group_name)
     return rgb_to_hex(r, g, b)
 end
 
-
 -- local function get_is_bright_color(r,g,b)
 --     local luminance = 0.299 * r + 0.587 * g + 0.114 * b
 --     local threshold = 0.5
 --     -- Compare luminance to the threshold
 --     return luminance >= threshold
 -- end
-
 
 -- Function to check if a color is light or dark
 local function get_is_light(r, g, b)
@@ -107,7 +100,6 @@ local function get_is_light(r, g, b)
     return isLightColor
 end
 
-
 -- If for_white is true, make the color dark
 -- If for_white is false, make the color light
 function M.auto_adjust_contrast(r, g, b, for_white)
@@ -120,7 +112,7 @@ function M.auto_adjust_contrast(r, g, b, for_white)
     -- Not enough contrast so adjust it
     -- Calculate the relative luminance of the opposite color (black or white)
     local opposite_luminance = for_white and 0.25 or 0.75
-    local factor = opposite_luminance / luminance;
+    local factor = opposite_luminance / luminance
     factor = math.min(3.0, math.max(0.2, factor))
     local ro = math.floor(math.min(255, math.max(0, r * factor)))
     local go = math.floor(math.min(255, math.max(0, g * factor)))
@@ -128,12 +120,10 @@ function M.auto_adjust_contrast(r, g, b, for_white)
     return ro, go, bo
 end
 
-
 function M.get_contrasting_by_rgb(r, g, b, for_white)
     local is_input_light = get_is_light(r, g, b)
     return M.auto_adjust_contrast(r, g, b, for_white)
 end
-
 
 -- Change hex color to contrasting on white/black if for_white is true/false
 function M.get_contrasting_by_hex(hex, for_white)
@@ -142,25 +132,22 @@ function M.get_contrasting_by_hex(hex, for_white)
     return rgb_to_hex(r2, g2, b2)
 end
 
-
 -- Change color fg from group_name to contrasting on white/black if for_white is true/false
 function M.get_contrasting_by_group(ns_id, group_name, for_white)
-    local input_24bit = vim.api.nvim_get_hl(ns_id, {name=group_name}).fg
+    local input_24bit = vim.api.nvim_get_hl(ns_id, {name = group_name}).fg
     local r, g, b = bit24_to_rgb(input_24bit)
     local r2, g2, b2 = M.get_contrasting_by_rgb(r, g, b, for_white)
     return rgb_to_hex(r2, g2, b2)
 end
 
-
 function M.get_is_normal_fg_bright()
-    local normal_def = vim.api.nvim_get_hl(0, {name="Normal"})
+    local normal_def = vim.api.nvim_get_hl(0, {name = "Normal"})
     local r, g, b = bit24_to_rgb(normal_def.fg)
     return get_is_light(r, g, b)
 end
 
-
 function M.get_pattern_color(is_ui_light)
-    return M.get_contrasting_by_group(0, 'Title', is_ui_light)
+    return M.get_contrasting_by_group(0, "Title", is_ui_light)
     -- for _, group_name in pairs({'Title', 'Statement', 'Identifier'}) do
     --     if M.get_hi_group_exists(0, group_name) then
     --         return M.get_contrasting_by_group(0, group_name, is_ui_light)
