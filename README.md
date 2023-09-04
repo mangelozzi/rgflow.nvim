@@ -3,6 +3,9 @@
 Get in the flow with RipGrep. Not simply a wrapper which could be replaced by a
 few lines of config.
 
+<img src="https://user-images.githubusercontent.com/19764314/265533036-f05ff0cd-8b4f-4c71-8730-0bb56de9e318.gif">
+
+
 ## Why
 
 - Main purpose: Perform a [RipGrep](https://github.com/BurntSushi/ripgrep) 
@@ -22,6 +25,7 @@ few lines of config.
     - Find search results asynchronously
     - Populates the QuickFix windows in batches so it seems like it's none blocking.
     - Highlights the search term, so even if `:noh` the search terms are still highlighted
+        - Even if used a regex as the search term
     - You can set it's theme colours. However if you are someone you likes to 
       change color scheme a lot, if you use the defaults they will update to 
       some sane defaults based on the applied scheme.

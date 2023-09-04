@@ -112,6 +112,8 @@ local function on_exit()
     else
         STATE.mode = ""
         schedule_print(utils.get_done_msg(STATE), true)
+        -- sometimes prints comes after scheduled ones
+        print(utils.get_done_msg(STATE), false)
     end
 end
 
