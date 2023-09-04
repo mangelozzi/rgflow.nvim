@@ -29,6 +29,7 @@ local defaults = {
     completeopt = "menuone,noinsert,noselect",
 
     mappings = {
+        -- Mappings that all always present
         trigger = {
             n = {
                 ["<leader>rG"] = "open_blank", -- open UI - search pattern = blank
@@ -42,6 +43,7 @@ local defaults = {
                 ["<leader>rg"] = "open_visual", -- open UI - search pattern = current visual selection
             },
         },
+        -- Mappings that are local only to the RgFlow UI
         ui = {
             n = {
                 ["<CR>"]  = "start", -- With the ui open, start a search with the current parameters
@@ -58,6 +60,7 @@ local defaults = {
                 ["<C-P>"] = "auto_complete", -- start autocomplete if PUM not visible, if visible use own hotkeys to select an option
             },
         },
+        -- Mapping that are local only to the QuickFix window
         quickfix = {
             n = {
                 ["d"] = "qf_delete",
