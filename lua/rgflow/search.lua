@@ -4,7 +4,8 @@ local api = vim.api
 local quickfix = require("rgflow.quickfix")
 local utils = require("rgflow.utils")
 local get_state = require("rgflow.state").get_state
-local get_settings = require("rgflow.settingslib").get_settings
+local settings = require("rgflow.settingslib")
+local get_settings = settings.get_settings
 
 local MIN_PRINT_TIME = 0.5 -- A float in seconds
 
@@ -169,7 +170,9 @@ local function set_state(pattern, flags, path)
 
     -- Default flags always included
     -- local rg_args = {"--vimgrep", "--no-messages"}
-    local rg_args = {"--vimgrep"}
+    -- For highlighting { ZS_ZE.."$0"..ZS_ZE }
+    -- local rg_args = {"--vimgrep"}
+    local rg_args = {"--vimgrep", "--replace", settings.zs_ze .. "$0" .. settings.zs_ze}
 
     -- 1. Add the flags first to the Ripgrep command
     -- The args will never contain spaces, the search term might, but thats following below

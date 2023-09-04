@@ -1,12 +1,11 @@
 -- When results are added to qf their paths are changed to be relative to PWD
 -- hence the line changes in length
-
+-- Also changes the line/col number formatting so becomes a different length
 local M = {}
 local api = vim.api
 local utils = require("rgflow.utils")
 local get_settings = require("rgflow.settingslib").get_settings
 local get_state = require("rgflow.state").get_state
-local zs_ze = require('rgflow.settingslib').zs_ze
 
 -- Since adding a lot of items to the quickfix window blocks the editor
 -- Add a few then defer, continue. Chunk size of 10'000 makes lua run out memory.
@@ -14,69 +13,74 @@ local CHUNK_SIZE = 1000
 
     -- local rg_args = {"--vimgrep", "--replace", settings.zs_ze .. "$0" .. settings.zs_ze}
 
+local function calc_hl_offset(zs_ze, line)
+    print('line:', line)
+    vim.fn.setqflist({}, " ", {lines = {line}})
+    local lines = vim.fn.getqflist()
+    vim.print('QF info', lines)
+end
 
-local function calc_positions(line)
-    -- There maybe be more than one match per a line
-    local positions = {}
-    local start = nil
-    local match_cnt = 0
-    for i = 1, #line do
-        local char = line:sub(i, i)
-        if char == zs_ze then
-            match_cnt = match_cnt + 1
-            if start then
-                table.insert(positions, {zs = start, ze = i - match_cnt})
-                start = nil
-            else
-                 start = i - match_cnt
-            end
-        end
+local function remove_zs_ze_chars(zs_ze, line)
+    local zs = line:find(zs_ze, 1)
+    if not zs then
+        -- Sometimes no match due to: "[Omitted long line with 5 matches]"
+        return line, nil, nil
     end
-    -- local clean_line = line:gsub(zs_ze, "")
-    return positions
+    local ze = line:find(zs_ze, zs + 1) - 1 -- -1 for the removal of zs
+    local clean_line = line:gsub(zs_ze, "")
+    return clean_line, zs, ze
 end
 
 -- -- Mark groups with RgFlowInputPattern too for when search terms hi goes away
-local function apply_pattern_highlights()
+local function apply_pattern_highlights(hi_info)
     local STATE = get_state()
-    local hi_info = {}
-    -- local qf_buf_nr = vim.fn.getqflist({qfbufnr = true}).qfbufnr
-
+    hi_info = hi_info or STATE.hl_info
+    local zs_ze = require('rgflow.settingslib').zs_ze
     vim.api.nvim_buf_clear_namespace(0, STATE.highlight_namespace_id, 0, -1)
     -- dont iterate getqflist entries because they dont return the filename, which is before each entry
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
     for i, line in ipairs(lines) do
         -- local start_col, end_col = 1, 0
-        hi_info[i] = calc_positions(line)
-    end
-
-    -- vim.api.nvim_buf_set_option(qf_buf_nr, 'modifiable', true)
-    -- vim.cmd('%s///g')
-    -- vim.api.nvim_buf_set_option(qf_buf_nr, 'modifiable', false)
-
-    -- Only operates linewise, since 1 Quickfix entry is tied to 1 line.
-    -- local clean_line = line:gsub(zs_ze, "")
-
-    -- remove zs_ze marks
-    local qf_list = vim.fn.getqflist()
-    for i = 1, #qf_list do
-        qf_list[i]["text"] = string.gsub(qf_list[i]["text"], zs_ze, '')
-    end
-    vim.fn.setqflist(qf_list, "r")
-
-
-    for line_nr, positions in pairs(hi_info) do
-        for _, position in ipairs(positions) do
+        local new_line, zs, ze = remove_zs_ze_chars(zs_ze, line)
             vim.api.nvim_buf_add_highlight(
                 0,
                 STATE.highlight_namespace_id,
                 "RgFlowQfPattern",
-                line_nr - 1,
-                position["zs"],
-                position["ze"]
+                i - 1,
+                zs - 1,
+                ze
             )
-        end
+
+        -- while true do
+        --     -- start_col, end_col = line:find(STATE.pattern, end_col + 1)
+        --     if not start_col or not end_col then
+        --         break
+        --     end
+        --     vim.api.nvim_buf_add_highlight(
+        --         0,
+        --         STATE.highlight_namespace_id,
+        --         "RgFlowQfPattern",
+        --         i - 1,
+        --         start_col - 1,
+        --         end_col
+        --     )
+        --     start_col = end_col + 1
+        -- end
     end
+    -- for line_nr, hi_info in pairs(hi_info) do
+    --     -- vim.print(hi_info)
+    --     if hi_info.ze then
+    --         print(hi_info.zs, '->', hi_info.ze, 'line: ', STATE.results[line_nr])
+    --         vim.api.nvim_buf_add_highlight(
+    --             0,
+    --             STATE.highlight_namespace_id,
+    --             "RgFlowQfPattern",
+    --             line_nr - 1,
+    --             hi_info.zs,
+    --             hi_info.ze
+    --         )
+    --     end
+    -- end
 end
 
 -- The usual /term highlights
@@ -104,6 +108,7 @@ function M.delete_operator(mode)
     end
     -- Don't create a new qf list, so use 'r'. Applies to colder/cnewer etc.
     vim.fn.setqflist(qf_list, "r")
+    apply_pattern_highlights()
     -- When deleting a visual set of lines, it's more intuitive to jump to the
     -- start of where the lines were deleted, rather then the current line place
     -- I.e. say you delete from line 4 to 6, now on line 6 you have to new lines
@@ -140,6 +145,7 @@ function M.mark_operator(add_not_remove, mode)
     end
     -- Don't create a new qf list, so use 'r'. Applies to colder/cnewer etc.
     vim.fn.setqflist(qf_list, "r")
+    apply_pattern_highlights()
     vim.fn.winrestview(win_pos)
 end
 
@@ -155,6 +161,11 @@ local function processChunk()
     local zs_ze = require('rgflow.settingslib').zs_ze
     -- local chunk_lines = {}
     local chunk_lines = {unpack(STATE.results, start_idx, end_idx)}
+
+    if start_idx == 1 then
+        calc_hl_offset(zs_ze, chunk_lines[1])
+        return
+    end
 
     vim.fn.setqflist({}, "a", {lines = chunk_lines})
         -- local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
@@ -180,17 +191,13 @@ M.populate_with_results = function()
     STATE.mode = "adding"
     if STATE.match_cnt > 0 then
         api.nvim_command("copen")
-        -- Set char ASCII value 30 (<C-^>),"record separator" as invisible char around the pattern matches
-        -- Conceal options set in ftplugin
-        local qf_win_nr = vim.fn.getqflist({winid = true}).winid
-        id = vim.fn.matchadd("Conceal", zs_ze, 12, -1, {conceal = "", window = qf_win_nr})
-
         local title = "  " .. STATE.pattern .. " (" .. #STATE.results .. ")   " .. STATE.path
         local create_qf_options = {title = title, pattern = STATE.pattern}
         if get_settings().quickfix.new_list_always_appended then
             create_qf_options.nr = "$"
         end
         vim.fn.setqflist({}, " ", create_qf_options) -- If what is used then list is ignored
+        STATE.hl_info = {}
         if get_settings().quickfix.open_qf_list then
             local height = STATE.match_cnt
             local max = get_settings().quickfix.max_height_lines

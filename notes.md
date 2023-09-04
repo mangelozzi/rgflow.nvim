@@ -1,11 +1,3 @@
-
-A bit buggy
-Todo: auto complete
-Visual operators for opening ui
-
-nvim-rgflow.lua Plugin
-
-
 Debug like this:
 lua dofile('/home/michael/.config/nvim/tmp/rgflow.nvim/lua/rgflow/init.lua')
 
