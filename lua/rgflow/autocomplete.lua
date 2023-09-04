@@ -56,10 +56,9 @@ local function get_rg_help_data()
             i = i + 1
         end
 
-        -- Lua regex implementation does not handle optional match groups
-        --     -A, --after-context <NUM>                    Show NUM lines after each match.
-        --         --auto-hybrid-regex                      Dynamically use PCRE2 if necessary.
-        local match, rest
+        -- Lua regex implementation does not handle optional match groups so
+        -- we iterate across the matches
+
         -- Match the `-A` in a line like:
         --     -A, --after-context <NUM>                    Show NUM lines after each match.
         local abbr_flag_pattern = "%s*(-%w), (.*)"

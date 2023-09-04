@@ -120,15 +120,10 @@ function M.auto_adjust_contrast(r, g, b, for_white)
     return ro, go, bo
 end
 
-function M.get_contrasting_by_rgb(r, g, b, for_white)
-    local is_input_light = get_is_light(r, g, b)
-    return M.auto_adjust_contrast(r, g, b, for_white)
-end
-
 -- Change hex color to contrasting on white/black if for_white is true/false
 function M.get_contrasting_by_hex(hex, for_white)
     local r, g, b = hex_to_rgb(hex)
-    local r2, g2, b2 = M.get_contrasting_by_rgb(r, g, b, for_white)
+    local r2, g2, b2 = M.auto_adjust_contrast(r, g, b, for_white)
     return rgb_to_hex(r2, g2, b2)
 end
 
@@ -136,7 +131,7 @@ end
 function M.get_contrasting_by_group(ns_id, group_name, for_white)
     local input_24bit = vim.api.nvim_get_hl(ns_id, {name = group_name}).fg
     local r, g, b = bit24_to_rgb(input_24bit)
-    local r2, g2, b2 = M.get_contrasting_by_rgb(r, g, b, for_white)
+    local r2, g2, b2 = M.auto_adjust_contrast(r, g, b, for_white)
     return rgb_to_hex(r2, g2, b2)
 end
 
@@ -148,21 +143,15 @@ end
 
 function M.get_pattern_color(is_ui_light)
     return M.get_contrasting_by_group(0, "Title", is_ui_light)
-    -- for _, group_name in pairs({'Title', 'Statement', 'Identifier'}) do
-    --     if M.get_hi_group_exists(0, group_name) then
-    --         return M.get_contrasting_by_group(0, group_name, is_ui_light)
-    --     end
-    -- end
-    -- return M.get_contrasting_by_rgb(255,255,0, is_ui_light)
 end
 
 function M.get_matches_color(is_ui_light)
-    for _, group_name in pairs({'Statement', 'Identifier'}) do
+    for _, group_name in pairs({"Statement", "Identifier"}) do
         if M.get_hi_group_exists(0, group_name) then
             return M.get_contrasting_by_group(0, group_name, is_ui_light)
         end
     end
-    return M.get_contrasting_by_rgb(255,255,0, is_ui_light)
+    return M.auto_adjust_contrast(255, 255, 0, is_ui_light)
 end
 
 return M

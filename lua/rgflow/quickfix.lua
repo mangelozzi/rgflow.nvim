@@ -152,7 +152,6 @@ local function processChunk()
     end
     local start_idx = STATE.lines_added + 1
     local end_idx = math.min(STATE.lines_added + CHUNK_SIZE, #STATE.results)
-    local zs_ze = require('rgflow.settingslib').zs_ze
     -- local chunk_lines = {}
     local chunk_lines = {unpack(STATE.results, start_idx, end_idx)}
 
@@ -180,11 +179,6 @@ M.populate_with_results = function()
     STATE.mode = "adding"
     if STATE.match_cnt > 0 then
         api.nvim_command("copen")
-        -- Set char ASCII value 30 (<C-^>),"record separator" as invisible char around the pattern matches
-        -- Conceal options set in ftplugin
-        local qf_win_nr = vim.fn.getqflist({winid = true}).winid
-        id = vim.fn.matchadd("Conceal", zs_ze, 12, -1, {conceal = "", window = qf_win_nr})
-
         local title = "  " .. STATE.pattern .. " (" .. #STATE.results .. ")   " .. STATE.path
         local create_qf_options = {title = title, pattern = title}
         if get_settings().quickfix.new_list_always_appended then
@@ -203,6 +197,12 @@ M.populate_with_results = function()
             local win = vim.fn.getqflist({winid = 1}).winid
             api.nvim_win_set_height(win, height)
         end
+
+        -- Set char ASCII value 30 (<C-^>),"record separator" as invisible char around the pattern matches
+        -- Conceal options set in ftplugin
+        local qf_win_nr = vim.fn.getqflist({winid = true}).winid
+        vim.fn.matchadd("Conceal", zs_ze, 12, -1, {conceal = "", window = qf_win_nr})
+
         processChunk()
     end
 end
