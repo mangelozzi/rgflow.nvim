@@ -8,8 +8,7 @@ local qf_settings = settings.get_settings().quickfix
 local rgflow = require("rgflow")
 
 local mappings = settings.get_settings().mappings.quickfix
-local options = {noremap = true, buffer = true, silent = true}
-settings.apply_keymaps(mappings, options)
+settings.apply_keymaps(mappings)
 
 local function get_prefix(predicate)
     if predicate then

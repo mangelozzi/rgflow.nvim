@@ -17,10 +17,10 @@ M.setup = require("rgflow.settingslib").setup
 -- e.g. require('rgflow').open('foo', '--smart-case --no-ignore', '/home/bob/stuff')
 M.open = ui.open
 
--- open UI - search pattern = blank
+-- open UI - search pattern = blank (hence will start in insert mode)
 M.open_blank = ui.open
 
--- open UI - search pattern = <cword>
+-- open UI - search pattern = <cword> (hence will start in normal mode)
 M.open_cword = function()
     ui.open(vim.fn.expand("<cword>"))
 end
@@ -43,11 +43,7 @@ M.open_visual = function()
 end
 
 -- With the UI pop up open, start searching with the currently filled out fields
-M.start = function()
-    if vim.fn.pumvisible() == 0 then
-        ui.start()
-    end
-end
+M.start = ui.start
 
 -- Close the current UI window
 M.close = ui.close

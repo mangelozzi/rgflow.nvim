@@ -26,6 +26,7 @@ end
 -- Within the input dialogue, call the appropriate auto-complete function.
 function M.auto_complete()
     if vim.fn.pumvisible() ~= 0 then
+        -- If pop up menu is no hidden, i.e. shown
         return
     end
     local linenr = api.nvim_win_get_cursor(0)[1]
@@ -62,6 +63,7 @@ end
 --- Within the input dialogue, call the appropriate auto-complete function.
 function M.auto_complete2()
     if vim.fn.pumvisible() ~= 0 then
+        -- If pop up menu is no hidden, i.e. shown
         return
     end
     local linenr = vim.api.nvim_win_get_cursor(0)[1]

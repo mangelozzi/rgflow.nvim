@@ -164,24 +164,27 @@ function M.rg_flags_complete(findstart, base)
 end
 
 -- Within the input dialogue, call the appropriate auto-complete function.
+-- This function must be mapped with `expr = true` because it returns a key combo
+-- vim.fn.feedkeys(vim.api.nvim_replace_termcodes("<C-N>", true, nil, true), "n")
 function M.auto_complete()
     if vim.fn.pumvisible() ~= 0 then
-        vim.fn.feedkeys(vim.api.nvim_replace_termcodes("<C-N>", true, nil, true), "n")
-        return
+        -- If pop up menu is shown, then select the current match
+        -- return '<C-]>' -- selects
+        return vim.v.char
     end
     local linenr = api.nvim_win_get_cursor(0)[1]
     if linenr == 1 then
         -- Flags line - Using completefunc
         -- Set in ftafter/rgflow.lua
         -- vim.opt_local.omnifunc = "v:lua.RGFLOW_FLAGS_COMPLETE"
-        vim.fn.feedkeys(vim.api.nvim_replace_termcodes("<C-X><C-O>", true, nil, true), "n")
+        return "<C-X><C-O>"
     elseif linenr == 2 then
         -- Pattern line
         -- Default autocomplete is an empty string
-        vim.fn.feedkeys(vim.api.nvim_replace_termcodes("<C-N>", true, nil, true), "n")
+        return "<C-N>"
     elseif linenr == 3 then
         -- Filename line
-        vim.fn.feedkeys(vim.api.nvim_replace_termcodes("<C-X><C-F>", true, nil, true), "n")
+        return "<C-X><C-F>"
     end
 end
 

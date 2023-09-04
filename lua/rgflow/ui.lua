@@ -148,6 +148,12 @@ function M.open(pattern, flags, path)
 end
 
 function M.start()
+    if vim.fn.pumvisible() ~= 0 then
+        -- If the autocomplete pop up menu is shown, select current
+        -- autocompletion match instead of starting
+        return '<C-]>'
+    end
+
     if vim.fn.mode() == "i" then
         -- If start search in insert mode with ENTER, will open QF in insert mode and gets lots of errors
         vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", true)
