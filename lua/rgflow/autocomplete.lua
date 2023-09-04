@@ -116,15 +116,12 @@ local function get_rg_help_matches(base)
     for _, data in ipairs(HELP_DATA) do
         if string.find(data["word"], base, 0, false) then
             -- print("added match")
-            table.insert(flag_data, {word = data["word"], menu = data["desc"]})
+            table.insert(flag_data, {word = data["word"], menu = data["menu"]})
         end
     end
     -- vim.print('flag_data', flag_data)
     return flag_data
 end
--- vim.cmd("messages clear")
--- get_rg_help_matches(' --sm')
--- vim.cmd("mess")
 
 --- Auto-complete function for ripgrap flags
 -- :h complete-functions

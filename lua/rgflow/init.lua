@@ -1,9 +1,10 @@
-local M = {}
 local utils = require("rgflow.utils")
 local ui = require("rgflow.ui")
 local quickfix = require("rgflow.quickfix")
 local search = require("rgflow.search")
 local get_state = require("rgflow.state").get_state
+
+local M = {}
 
 -- Exposed API
 M.setup = require("rgflow.settingslib").setup
@@ -86,31 +87,31 @@ M.nop = function()
 end
 
 M.qf_delete = function()
-    require("rgflow.quickfix").delete_operator(vim.fn.mode())
+    quickfix.delete_operator(vim.fn.mode())
 end
 
 M.qf_delete_line = function()
-    require("rgflow.quickfix").delete_operator("line")
+    quickfix.delete_operator("line")
 end
 
 M.qf_delete_visual = function()
-    require("rgflow.quickfix").delete_operator(vim.fn.mode())
+    quickfix.delete_operator(vim.fn.mode())
 end
 
 M.qf_mark = function()
-    require("rgflow.quickfix").mark_operator(true, "line")
+    quickfix.mark_operator(true, "line")
 end
 
 M.qf_mark_visual = function()
-    require("rgflow.quickfix").mark_operator(true, vim.fn.mode())
+    quickfix.mark_operator(true, vim.fn.mode())
 end
 
 M.qf_unmark = function()
-    require("rgflow.quickfix").mark_operator(false, "line")
+    quickfix.mark_operator(false, "line")
 end
 
 M.qf_unmark_visual = function()
-    require("rgflow.quickfix").mark_operator(false, vim.fn.mode())
+    quickfix.mark_operator(false, vim.fn.mode())
 end
 
 -- Auto complete with rgflags or buffer words or filepaths depending on the input box they are on

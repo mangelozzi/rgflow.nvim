@@ -134,16 +134,16 @@ end
 
 function M.open(pattern, flags, path)
     local STATE = get_state()
-    if STATE.mode == "" then
-        M.show_ui(pattern, flags, path)
-        return
-    elseif STATE.mode == "open" then
+    if STATE.mode == "open" and vim.api.nvim_win_is_valid(STATE.wini) then
         print("Switched to currently open RgFlow")
         vim.fn.win_gotoid(STATE.wini)
+        return
     elseif STATE.mode == "searching" then
         print("Currently searching... First Run the abort function: require('rgflow').abort")
     elseif STATE.mode == "adding" then
         print("Currently adding results ... First Run the abort function: require('rgflow').abort")
+    else
+        M.show_ui(pattern, flags, path)
     end
 end
 

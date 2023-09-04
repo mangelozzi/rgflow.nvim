@@ -19,6 +19,9 @@ local defaults = {
     --  Example chars: ━━━ ═══ ███  ▀▀▀ ▃▃▃   
     ui_top_line_char = "▃",
 
+    -- The vim `completeopt` for when using autocomplete with the RgFlow UI open
+    completeopt = "menuone,noinsert,noselect",
+
     mappings = {
         trigger = {
             n = {
@@ -135,7 +138,6 @@ local function get_default_colors()
         RgFlowInputPath     = { bg="fg", fg=(is_ui_light and '#333333' or '#eeeeee')},
     }
 end
-
 
 local function apply_color_def(group_name, color_def)
     vim.api.nvim_set_hl(UI_GROUP, group_name, color_def)
