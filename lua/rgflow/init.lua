@@ -42,7 +42,11 @@ M.open_visual = function()
 end
 
 -- With the UI pop up open, start searching with the currently filled out fields
-M.start = ui.start
+M.start = function()
+    if vim.fn.pumvisible() == 0 then
+        ui.start()
+    end
+end
 
 -- Close the current UI window
 M.close = ui.close
@@ -81,29 +85,6 @@ M.show_rg_help = ui.show_rg_help
 M.nop = function()
 end
 
---- Within the input dialogue, call the appropriate auto-complete function.
-function M.auto_complete2()
-    if vim.fn.pumvisible() ~= 0 then
-        return
-    end
-    local linenr = vim.api.nvim_win_get_cursor(0)[1]
-    if linenr == 1 then
-        -- Flags line - Using completefunc
-        -- nvim_buf_set_option({buffer}, {name}, {value})
-        -- vim.api.nvim_buf_set_option(0, "completefunc", "v:lua.require('rgflow.autocomplete').rg_flags_complete")
-        vim.api.nvim_buf_set_option(0, "completefunc", "v:lua.RG_FLAGS_COMPLETE")
-        vim.api.nvim_input("<C-X><C-U>")
-    elseif linenr == 2 then
-        -- Pattern line
-        -- vim.api.nvim_input("<C-N>")
-        vim.fn.feedkeys(vim.api.nvim_replace_termcodes("<C-N>", true, nil, true), "n")
-    elseif linenr == 3 then
-        -- Filename line
-        vim.fn.feedkeys(vim.api.nvim_replace_termcodes("<C-N>", true, nil, true), "n")
-        vim.api.nvim_input("<C-X><C-F>")
-    end
-end
-
 M.qf_delete = function()
     require("rgflow.quickfix").delete_operator(vim.fn.mode())
 end
@@ -133,8 +114,6 @@ M.qf_unmark_visual = function()
 end
 
 -- Auto complete with rgflags or buffer words or filepaths depending on the input box they are on
--- M.auto_complete = vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<C-X><C-O>", true, true, true), "n", true)
 M.auto_complete = require("rgflow.autocomplete").auto_complete
-RGFLOW_AUTO_COMPLETE = require("rgflow.autocomplete").auto_complete
 
 return M

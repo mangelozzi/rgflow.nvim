@@ -3,11 +3,12 @@ if vim.bo.filetype ~= "rgflow" then
     return
 end
 
+-- Gobal variable so completefunc can be set to "v:lua.RGFLOW_FLAGS_COMPLETE"
+RGFLOW_FLAGS_COMPLETE = require("rgflow.autocomplete").rg_flags_complete
+vim.opt_local.omnifunc = "v:lua.RGFLOW_FLAGS_COMPLETE"
+
 local settings = require("rgflow.settingslib")
 
 local mappings = settings.get_settings().mappings.ui
 local options = {noremap = true, buffer = true, silent = true}
 settings.apply_keymaps(mappings, options)
-
--- vim.opt_local.completefunc = "v:lua.require('rgflow.autocomplete').auto_complete"
--- vim.api.nvim_buf_set_option(0, "completefunc", "v:lua.RG_FLAGS_COMPLETE")

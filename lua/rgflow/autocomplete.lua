@@ -150,7 +150,7 @@ end
 --    a:base	the text with which matches should match; the text that was
 -- 		located in the first call (can be empty)
 
-local function rg_flags_complete(findstart, base)
+function M.rg_flags_complete(findstart, base)
     if findstart == 1 then
         -- print("auto atuo plete333")
         local pos = api.nvim_win_get_cursor(0)
@@ -175,18 +175,19 @@ end
 -- Within the input dialogue, call the appropriate auto-complete function.
 function M.auto_complete()
     if vim.fn.pumvisible() ~= 0 then
+        vim.fn.feedkeys(vim.api.nvim_replace_termcodes("<C-N>", true, nil, true), "n")
         return
     end
     local linenr = api.nvim_win_get_cursor(0)[1]
     if linenr == 1 then
         -- Flags line - Using completefunc
-        vim.opt_local.completefunc = "v:lua.RG_FLAGS_COMPLETE"
-        vim.fn.feedkeys(vim.api.nvim_replace_termcodes("<C-X><C-U>", true, nil, true), "n")
+        -- Set in ftafter/rgflow.lua
+        -- vim.opt_local.omnifunc = "v:lua.RGFLOW_FLAGS_COMPLETE"
+        vim.fn.feedkeys(vim.api.nvim_replace_termcodes("<C-X><C-O>", true, nil, true), "n")
     elseif linenr == 2 then
         -- Pattern line
         -- Default autocomplete is an empty string
-        vim.opt_local.completefunc = ""
-        vim.fn.feedkeys(vim.api.nvim_replace_termcodes("<C-X><C-U>", true, nil, true), "n")
+        vim.fn.feedkeys(vim.api.nvim_replace_termcodes("<C-N>", true, nil, true), "n")
     elseif linenr == 3 then
         -- Filename line
         vim.fn.feedkeys(vim.api.nvim_replace_termcodes("<C-X><C-F>", true, nil, true), "n")
