@@ -12,18 +12,14 @@ local MIN_PRINT_TIME = 0.5 -- A float in seconds
 -- @param msg - The message to print
 local function schedule_print(msg, echom)
     local timer = uv.new_timer()
-    local cmd
-    if echom then
-        cmd = "echom '" .. msg .. "'"
-    else
-        cmd = "echo '" .. msg .. "'"
-    end
+    local cmd = echom and "echom " or "echo "
     timer:start(
         100,
         0,
         vim.schedule_wrap(
             function()
-                vim.api.nvim_command(cmd)
+                -- In vim escape a single quote with two quotes.
+                vim.cmd(cmd .. "'" .. msg:gsub("'", "''") .. "'")
             end
         )
     )
@@ -211,7 +207,8 @@ function M.run(pattern, flags, path)
 
     -- Global STATE used by the async job
     set_state(pattern, flags, path)
-    schedule_print(get_status_msg(get_state()), false)
+    -- Don't schedule the print, else may come after we finish!
+    print(get_status_msg(get_state()))
     spawn_job()
 end
 
