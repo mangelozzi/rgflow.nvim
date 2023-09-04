@@ -157,18 +157,19 @@ local func_name_to_keymap_opts = {
 
 local function get_default_colors()
     local is_ui_light = colorlib.get_is_normal_fg_bright()
+    local fg, bg = colorlib.get_default_colors()
     -- local STATE = require('rgflow.state').get_state()
     return {
         -- Recommend not setting a BG so it uses the current lines BG
         RgFlowQfPattern     = { bg=colorlib.get_group_bg(0, 'QuickFixLine'), fg=colorlib.get_matches_color(not is_ui_light), bold=true},
-        RgFlowHead          = { fg="fg", bg="bg"},
-        RgFlowHeadLine      = { bg="bg", fg=colorlib.get_group_bg(0, 'StatusLine')},
+        RgFlowHead          = { fg=fg, bg=bg},
+        RgFlowHeadLine      = { bg=bg, fg=colorlib.get_group_bg(0, 'StatusLine')},
         -- Even though just a background, add the foreground or else when
         -- appending cant see the insert cursor
-        RgFlowInputBg       = { bg="fg", fg="bg"},
-        RgFlowInputFlags    = { bg="fg", fg="bg"},
-        RgFlowInputPattern  = { bg="fg", fg=colorlib.get_pattern_color(is_ui_light), bold=true},
-        RgFlowInputPath     = { bg="fg", fg=(is_ui_light and '#333333' or '#eeeeee')},
+        RgFlowInputBg       = { bg=fg, fg=bg},
+        RgFlowInputFlags    = { bg=fg, fg=bg},
+        RgFlowInputPattern  = { bg=fg, fg=colorlib.get_pattern_color(is_ui_light), bold=true},
+        RgFlowInputPath     = { bg=fg, fg=(is_ui_light and '#333333' or '#eeeeee')},
     }
 end
 

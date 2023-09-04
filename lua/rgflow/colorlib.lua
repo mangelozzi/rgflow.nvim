@@ -154,4 +154,16 @@ function M.get_matches_color(is_ui_light)
     return M.auto_adjust_contrast(255, 255, 0, is_ui_light)
 end
 
+function M.get_default_colors()
+    if M.get_hi_group_exists(0, "Normal") then
+        local hl_info = vim.api.nvim_get_hl_by_name('Normal', true)
+        local fg = hl_info.foreground
+        local bg = hl_info.background
+        if fg and bg then
+            return "fg", "bg"
+        end
+    end
+    return "#ffffff", "#000000"
+end
+
 return M
