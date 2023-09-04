@@ -5,41 +5,6 @@ local search = require('rgflow.search')
 local get_settings = require('rgflow.settingslib').get_settings
 local get_state = require('rgflow.state').get_state
 
---[[
---- Within the input dialogue, call the appropriate auto-complete function.
-function M.auto_complete()
-    if vim.fn.pumvisible() ~= 0 then
-        return
-    end
-    local linenr = api.nvim_win_get_cursor(0)[1]
-    if linenr == 1 then
-        -- Flags line - Using completefunc
-        -- nvim_buf_set_option({buffer}, {name}, {value})
-        -- api.nvim_buf_set_option(0, "completefunc", rg.flags_complete)
-        -- api.nvim_set_option_value("completefunc", "v:lua:rgflow.rg.flags_complete", {scope="local"})
-        print('set complete func')
-        vim.opt_local.completefunc = "v:lua.require('rgflow.rg').flags_complete"
-        -- api.nvim_input("<C-X><C-U>")
-        -- print('feeding keys')
-        -- vim.fn.feedkeys(vim.api.nvim_replace_termcodes('<C-X><C-U>',true,nil,true), "n")
-    elseif linenr == 2 then
-        -- Pattern line
-        -- Default autocomplete is an empty string
-        vim.opt_local.completefunc = ""
-        -- vim.fn.feedkeys(vim.api.nvim_replace_termcodes('<C-N>',true,nil,true), "n")
-    elseif linenr == 3 then
-        -- Filename line
-        vim.opt_local.completefunc = "file"
-        -- vim.fn.feedkeys(vim.api.nvim_replace_termcodes('<C-X><C-F>',true,nil,true), "n")
-    end
-    -- Get the completions using the specified completefunc.
-    -- local completions = require("cmp").complete(findstart, base, completefunc)
-
-    vim.fn.feedkeys(vim.api.nvim_replace_termcodes('<C-X><C-U>',true,nil,true), "n")
-
-    -- -- Return the completions.
-    -- return completions
-end--]]
 
 local function setup_ui_autocommands(STATE)
     -- Clear old auto commands

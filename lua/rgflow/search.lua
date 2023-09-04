@@ -203,7 +203,7 @@ function M.run(pattern, flags, path)
     if not rg_installed then
         local STATE = get_state()
         STATE.mode = ''
-        msg = "rg is not avilable on the path, have you installed RipGrep?"
+        msg = "rg is not avilable on path, have you installed RipGrep?"
         schedule_print(msg, true)
         return
     end
