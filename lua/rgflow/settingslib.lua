@@ -30,6 +30,7 @@ local defaults = {
                 ["<leader>rp"] = "open_paste", -- open UI - search pattern = First line of unnamed register as the search pattern
                 ["<leader>ra"] = "open_again", -- open UI - search pattern = Previous search pattern
                 ["<leader>rx"] = "abort",      -- close UI / abort searching / abortadding results
+                ["<leader>rc"] = "print_cmd",  -- Print a version of last run rip grep that can be pasted into a shell
             },
             x = {
                 ["<leader>rg"] = "open_visual", -- open UI - search pattern = current visual selection

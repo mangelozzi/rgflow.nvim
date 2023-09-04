@@ -86,6 +86,18 @@ M.show_rg_help = ui.show_rg_help
 M.nop = function()
 end
 
+-- Return a version of last run rip grep that can be pasted into a shell
+-- e.g. `local cmd = require('rgflow').get_cmd()`
+M.get_cmd = function()
+    return get_state().demo_cmd
+end
+
+-- Print a version of last run rip grep that can be pasted into a shell
+M.print_cmd = function()
+    local STATE = get_state()
+    return print(STATE.demo_cmd)
+end
+
 M.qf_delete = function()
     quickfix.delete_operator(vim.fn.mode())
 end

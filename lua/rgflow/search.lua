@@ -149,6 +149,18 @@ local function spawn_job()
     uv.read_start(stderr, on_stderr)
 end
 
+local function get_demo_cmd(pattern, flags_list, path)
+    -- The args are passe din as an array so the tokenisation is handled automatically,
+    -- whereas in bash instead of ` -g !**/static/*/jsapp/` one would do 
+    -- ` -g '!**/static/*/jsapp/'` to prevent bash from expanding the globs.
+    -- 
+    local escaped_flags = {}
+    for _, flag in ipairs(flags_list) do
+        table.insert(escaped_flags, vim.fn.shellescape(flag))
+    end
+    return "rg " .. table.concat(escaped_flags, " ")  .. " " .. pattern .. " " .. path
+end
+
 --- Prepares the global STATE to be used by the search.
 -- @return the global STATE
 local function set_state(pattern, flags, path)
@@ -160,11 +172,11 @@ local function set_state(pattern, flags, path)
     local rg_args = {"--vimgrep"}
 
     -- 1. Add the flags first to the Ripgrep command
+    -- The args will never contain spaces, the search term might, but thats following below
+    -- The args are passe din as an array so the tokenisation is handled automatically,
+    -- whereas in bash instead of ` -g !**/static/*/jsapp/` one would do 
+    -- ` -g '!**/static/*/jsapp/'` to prevent bash from expanding the globs.
     local flags_list = vim.split(flags, " ")
-
-    -- set conceallevel=2
-    -- syntax match Todo /bar/ conceal
-    -- :help conceal
 
     -- for flag in flags:gmatch("[-%w]+") do table.insert(rg_args, flag) end
     for _, flag in ipairs(flags_list) do
@@ -172,6 +184,7 @@ local function set_state(pattern, flags, path)
     end
 
     -- 2. Add the pattern
+    -- Tokenisation handled by spawn - will handle if it contains multiple single and double quotes
     table.insert(rg_args, pattern)
 
     -- 3. Add the search path
@@ -180,7 +193,7 @@ local function set_state(pattern, flags, path)
     local STATE = get_state()
     STATE.mode = "searching"
     STATE.rg_args = rg_args
-    STATE.demo_cmd = "rg " .. flags .. " " .. pattern .. " " .. path
+    STATE.demo_cmd = get_demo_cmd(pattern, flags_list, path)
     STATE.pattern = pattern
     STATE.path = path
     STATE.error_cnt = 0
