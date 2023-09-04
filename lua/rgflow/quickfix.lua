@@ -62,7 +62,7 @@ local function apply_pattern_highlights()
     for i = 1, #qf_list do
         qf_list[i]["text"] = string.gsub(qf_list[i]["text"], zs_ze, '')
     end
-    vim.fn.setqflist(qf_list, "r")
+    vim.fn.setqflist({}, "r", {items=qf_list})
 
 
     for line_nr, positions in pairs(hi_info) do
@@ -186,7 +186,7 @@ M.populate_with_results = function()
         id = vim.fn.matchadd("Conceal", zs_ze, 12, -1, {conceal = "", window = qf_win_nr})
 
         local title = "  " .. STATE.pattern .. " (" .. #STATE.results .. ")   " .. STATE.path
-        local create_qf_options = {title = title, pattern = STATE.pattern}
+        local create_qf_options = {title = title, pattern = title}
         if get_settings().quickfix.new_list_always_appended then
             create_qf_options.nr = "$"
         end
