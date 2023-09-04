@@ -7,7 +7,7 @@ local colorlib = require("rgflow.colorlib")
 
 -- The start and end of pattern match invisible marker
 -- ASCII value 30, hex 1E. Enter it in vim by pressing <C-V> then 030
-M.zs_ze = "\30"
+M.zs_ze = "\030"
 
 M.RgFlowAutoCmdGroup = vim.api.nvim_create_augroup("RgFlowAutoCmdGroup", {clear = true})
 

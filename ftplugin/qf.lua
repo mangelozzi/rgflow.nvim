@@ -18,6 +18,10 @@ local function get_prefix(predicate)
     end
 end
 
+-- Hide zs_ze char until populating finished and then they are deleted
+vim.opt_local.conceallevel = 3
+vim.opt_local.concealcursor = "n"
+
 vim.cmd("setlocal " .. get_prefix(qf_settings.relative_number) .. "relativenumber")
 vim.cmd("setlocal " .. get_prefix(qf_settings.wrap) .. "wrap")
 vim.cmd("setlocal colorcolumn=" .. qf_settings.color_column)
