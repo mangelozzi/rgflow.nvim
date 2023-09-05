@@ -3,7 +3,13 @@
 Get in the flow with RipGrep. Not simply a wrapper which could be replaced by a
 few lines of config.
 
-<img src="https://user-images.githubusercontent.com/19764314/265533036-f05ff0cd-8b4f-4c71-8730-0bb56de9e318.gif">
+Essence of the plugin:
+
+<img src="https://user-images.githubusercontent.com/19764314/265692852-9f070779-3f0e-441e-be61-812eb0cd0dfe.gif">
+
+Showing more of the features:
+
+<img src="https://user-images.githubusercontent.com/19764314/265692891-cd2f5f49-fe2c-4e29-baee-816453976ff0.gif">
 
 
 ## Why
