@@ -33,18 +33,20 @@ local function calc_positions(line)
     return positions
 end
 
--- Mark groups with RgFlowInputPattern too for when search terms hi goes away
-local function apply_pattern_highlights()
+local function clear_pattern_highlights(STATE)
+    vim.api.nvim_buf_clear_namespace(0, STATE.highlight_namespace_id, 0, -1)
+end
+
+-- Calculate the positions of the mark groups with RgFlowInputPattern to highlight
+local function calc_pattern_highlights()
     local STATE = get_state()
-    local hi_info = {}
     -- local qf_buf_nr = vim.fn.getqflist({qfbufnr = true}).qfbufnr
 
-    vim.api.nvim_buf_clear_namespace(0, STATE.highlight_namespace_id, 0, -1)
     -- dont iterate getqflist entries because they dont return the filename, which is before each entry
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
     for i, line in ipairs(lines) do
         -- local start_col, end_col = 1, 0
-        hi_info[i] = calc_positions(line)
+        STATE.hl_positions[i] = calc_positions(line)
     end
 
     -- vim.api.nvim_buf_set_option(qf_buf_nr, 'modifiable', true)
@@ -60,8 +62,13 @@ local function apply_pattern_highlights()
         qf_list[i]["text"] = string.gsub(qf_list[i]["text"], zs_ze, "")
     end
     vim.fn.setqflist({}, "r", {items = qf_list})
+end
 
-    for line_nr, positions in pairs(hi_info) do
+-- Mark groups with RgFlowInputPattern for when search terms highlight goes away
+local function apply_pattern_highlights()
+    local STATE = get_state()
+    clear_pattern_highlights(STATE)
+    for line_nr, positions in pairs(STATE.hl_positions) do
         for _, position in ipairs(positions) do
             vim.api.nvim_buf_add_highlight(
                 0,
@@ -89,6 +96,8 @@ end
 --- An operator to delete linewise from the quickfix window.
 -- @mode - Refer to module doc string at top of this file.
 function M.delete_operator(mode)
+    local STATE = get_state()
+
     -- Only operates linewise, since 1 Quickfix entry is tied to 1 line.
     local win_pos = vim.fn.winsaveview()
     local buffer, line, col = unpack(vim.fn.getpos("v"))
@@ -97,9 +106,11 @@ function M.delete_operator(mode)
     local qf_list = vim.fn.getqflist()
     for _ = 1, count, 1 do
         table.remove(qf_list, startl)
+        table.remove(STATE.hl_positions, startl)
     end
     -- Don't create a new qf list, so use 'r'. Applies to colder/cnewer etc.
     vim.fn.setqflist({}, "r", {items = qf_list})
+    apply_pattern_highlights()
     -- When deleting a visual set of lines, it's more intuitive to jump to the
     -- start of where the lines were deleted, rather then the current line place
     -- I.e. say you delete from line 4 to 6, now on line 6 you have to new lines
@@ -117,6 +128,8 @@ end
 -- Marking is accomplished by prefixing the line with a given string.
 -- @mode - Refer to module doc string at top of this file.
 function M.mark_operator(add_not_remove, mode)
+    local STATE = get_state()
+
     -- Only operates linewise, since 1 Quickfix entry is tied to 1 line.
     local win_pos = vim.fn.winsaveview()
     local startl, endl, _ = utils.get_line_range(mode)
@@ -125,17 +138,34 @@ function M.mark_operator(add_not_remove, mode)
     local mark = get_settings().quickfix.mark_str
     -- the quickfix list is an arrow of dictionary entries, an example of one entry:
     -- {'lnum': 57, 'bufnr': 5, 'col': 1, 'pattern': '', 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'module': '', 'text': 'function! myal#StripTrailingWhitespace()'}
+    -- HANDLE SIZE OFMARK STR
     if add_not_remove then
         for i = startl, endl, 1 do
             qf_list[i]["text"] = string.gsub(qf_list[i]["text"], "^(%s*)", "%1" .. mark, 1)
+            -- print('---before linr', i)
+            -- vim.print(STATE.hl_positions[i])
+            -- for _, position in ipairs(STATE.hl_positions[i]) do
+            --     position["zs"] = position["zs"] + 4
+            --     position["ze"] = position["ze"] + 4
+            -- end
+            -- print('---afte', i)
+            -- vim.print(STATE.hl_positions[i])
+            table.remove(STATE.hl_positions, startl)
         end
     else
         for i = startl, endl, 1 do
             qf_list[i]["text"] = string.gsub(qf_list[i]["text"], "^(%s*)" .. mark, "%1", 1)
+            -- for _, position in ipairs(STATE.hl_positions[i]) do
+            --     vim.print(position)
+            --     position["zs"] = position["zs"] - 1
+            --     position["ze"] = position["ze"] - 1
+            -- end
         end
     end
     -- Don't create a new qf list, so use 'r'. Applies to colder/cnewer etc.
     vim.fn.setqflist({}, "r", {items = qf_list})
+    apply_pattern_highlights()
+
     vim.fn.winrestview(win_pos)
 end
 
@@ -161,6 +191,7 @@ local function processChunk()
     else
         print(utils.get_done_msg(STATE))
         apply_search_term_highlight()
+        calc_pattern_highlights()
         apply_pattern_highlights()
         STATE.mode = ""
         STATE.results = {} -- free up memory
@@ -173,6 +204,9 @@ M.populate_with_results = function()
 
     local STATE = get_state()
     STATE.mode = "adding"
+    STATE.hl_positions = {}
+    clear_pattern_highlights(STATE)
+
     if STATE.match_cnt > 0 then
         api.nvim_command("copen")
         local title = "  " .. STATE.pattern .. " (" .. #STATE.results .. ")   " .. STATE.path
