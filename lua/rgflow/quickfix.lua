@@ -136,30 +136,25 @@ function M.mark_operator(add_not_remove, mode)
     -- local count = endl-startl + 1
     local qf_list = vim.fn.getqflist()
     local mark = get_settings().quickfix.mark_str
+    local offset = #mark
     -- the quickfix list is an arrow of dictionary entries, an example of one entry:
     -- {'lnum': 57, 'bufnr': 5, 'col': 1, 'pattern': '', 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'module': '', 'text': 'function! myal#StripTrailingWhitespace()'}
     -- HANDLE SIZE OFMARK STR
     if add_not_remove then
         for i = startl, endl, 1 do
             qf_list[i]["text"] = string.gsub(qf_list[i]["text"], "^(%s*)", "%1" .. mark, 1)
-            -- print('---before linr', i)
-            -- vim.print(STATE.hl_positions[i])
-            -- for _, position in ipairs(STATE.hl_positions[i]) do
-            --     position["zs"] = position["zs"] + 4
-            --     position["ze"] = position["ze"] + 4
-            -- end
-            -- print('---afte', i)
-            -- vim.print(STATE.hl_positions[i])
-            table.remove(STATE.hl_positions, startl)
+            for _, position in ipairs(STATE.hl_positions[i]) do
+                position["zs"] = position["zs"] + offset
+                position["ze"] = position["ze"] + offset
+            end
         end
     else
         for i = startl, endl, 1 do
             qf_list[i]["text"] = string.gsub(qf_list[i]["text"], "^(%s*)" .. mark, "%1", 1)
-            -- for _, position in ipairs(STATE.hl_positions[i]) do
-            --     vim.print(position)
-            --     position["zs"] = position["zs"] - 1
-            --     position["ze"] = position["ze"] - 1
-            -- end
+            for _, position in ipairs(STATE.hl_positions[i]) do
+                position["zs"] = position["zs"] - offset
+                position["ze"] = position["ze"] - offset
+            end
         end
     end
     -- Don't create a new qf list, so use 'r'. Applies to colder/cnewer etc.
