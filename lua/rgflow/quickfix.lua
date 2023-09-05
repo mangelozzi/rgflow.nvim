@@ -6,14 +6,11 @@ local api = vim.api
 local utils = require("rgflow.utils")
 local get_settings = require("rgflow.settingslib").get_settings
 local get_state = require("rgflow.state").get_state
-local zs_ze = require('rgflow.settingslib').zs_ze
+local zs_ze = require("rgflow.settingslib").zs_ze
 
 -- Since adding a lot of items to the quickfix window blocks the editor
 -- Add a few then defer, continue. Chunk size of 10'000 makes lua run out memory.
 local CHUNK_SIZE = 1000
-
-    -- local rg_args = {"--vimgrep", "--replace", settings.zs_ze .. "$0" .. settings.zs_ze}
-
 
 local function calc_positions(line)
     -- There maybe be more than one match per a line
@@ -28,7 +25,7 @@ local function calc_positions(line)
                 table.insert(positions, {zs = start, ze = i - match_cnt})
                 start = nil
             else
-                 start = i - match_cnt
+                start = i - match_cnt
             end
         end
     end
@@ -36,7 +33,7 @@ local function calc_positions(line)
     return positions
 end
 
--- -- Mark groups with RgFlowInputPattern too for when search terms hi goes away
+-- Mark groups with RgFlowInputPattern too for when search terms hi goes away
 local function apply_pattern_highlights()
     local STATE = get_state()
     local hi_info = {}
@@ -60,10 +57,9 @@ local function apply_pattern_highlights()
     -- remove zs_ze marks
     local qf_list = vim.fn.getqflist()
     for i = 1, #qf_list do
-        qf_list[i]["text"] = string.gsub(qf_list[i]["text"], zs_ze, '')
+        qf_list[i]["text"] = string.gsub(qf_list[i]["text"], zs_ze, "")
     end
-    vim.fn.setqflist({}, "r", {items=qf_list})
-
+    vim.fn.setqflist({}, "r", {items = qf_list})
 
     for line_nr, positions in pairs(hi_info) do
         for _, position in ipairs(positions) do
@@ -103,7 +99,7 @@ function M.delete_operator(mode)
         table.remove(qf_list, startl)
     end
     -- Don't create a new qf list, so use 'r'. Applies to colder/cnewer etc.
-    vim.fn.setqflist(qf_list, "r")
+    vim.fn.setqflist({}, "r", {items = qf_list})
     -- When deleting a visual set of lines, it's more intuitive to jump to the
     -- start of where the lines were deleted, rather then the current line place
     -- I.e. say you delete from line 4 to 6, now on line 6 you have to new lines
@@ -139,7 +135,7 @@ function M.mark_operator(add_not_remove, mode)
         end
     end
     -- Don't create a new qf list, so use 'r'. Applies to colder/cnewer etc.
-    vim.fn.setqflist(qf_list, "r")
+    vim.fn.setqflist({}, "r", {items = qf_list})
     vim.fn.winrestview(win_pos)
 end
 
@@ -156,7 +152,7 @@ local function processChunk()
     local chunk_lines = {unpack(STATE.results, start_idx, end_idx)}
 
     vim.fn.setqflist({}, "a", {lines = chunk_lines})
-        -- local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+    -- local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
 
     if STATE.lines_added < #STATE.results then
         STATE.lines_added = STATE.lines_added + #chunk_lines
