@@ -1,38 +1,14 @@
 local M = {}
 local uv = vim.loop
-local api = vim.api
 local quickfix = require("rgflow.quickfix")
-local utils = require("rgflow.utils")
 local get_state = require("rgflow.state").get_state
+local set_state_searching = require("rgflow.state").set_state_searching
 local settings = require("rgflow.settingslib")
 local get_settings = settings.get_settings
+local messages = require("rgflow.messages")
+local modes = require("rgflow.modes")
 
 local MIN_PRINT_TIME = 0.5 -- A float in seconds
-
-local function quote_echo_msg(msg)
-    return "'" .. msg:gsub("'", "''") .. "'"
-end
-
---- Schedules a message in the event loop to print.
--- @param msg - The message to print
-local function schedule_print(msg, echom)
-    local timer = uv.new_timer()
-    local cmd = echom and "echom " or "echo "
-    timer:start(
-        100,
-        0,
-        vim.schedule_wrap(
-            function()
-                -- In vim escape a single quote with two quotes.
-                vim.cmd(cmd .. quote_echo_msg(msg))
-            end
-        )
-    )
-end
-
-local function get_status_msg(STATE)
-    return " Searching ... " .. STATE.match_cnt .. " result" .. (STATE.match_cnt ~= 1 and "s" or "")
-end
 
 --- The stderr handler for the spawned job
 -- @param err and data - Refer to module doc string at top of this file.
@@ -43,20 +19,12 @@ local function on_stderr(err, data)
         return
     end
     local STATE = get_state()
-    if STATE.mode ~= "searching" then
-        return
-    end
 
     STATE.error_cnt = STATE.error_cnt + 1
-    local timer = uv.new_timer()
-    timer:start(
-        100,
-        0,
-        vim.schedule_wrap(
-            function()
-                api.nvim_command('echoerr '.. quote_echo_msg(data))
-            end
-        )
+    vim.schedule(
+        function()
+            vim.api.nvim_err_writeln(data)
+        end
     )
 end
 
@@ -64,31 +32,50 @@ end
 -- @param err and data - Refer to module doc string at top of this file.
 local function on_stdout(err, data)
     local STATE = get_state()
-    if STATE.mode ~= "searching" then
+    local first = STATE.found_cnt == 0
+    local found_was_empty = #STATE.found_que == 0
+
+    if STATE.mode == modes.ABORTING then
         return
     end
-
     if err then
         STATE.error_cnt = STATE.error_cnt + 1
-        schedule_print("ERROR: " .. vim.inspect(err) .. " >>> " .. vim.inspect(data), true)
+        vim.schedule(
+            function()
+                vim.api.nvim_err_writeln("ERROR: " .. vim.inspect(err) .. " >>> " .. vim.inspect(data), true)
+            end
+        )
     end
     if data then
         local vals = vim.split(data, "\n")
         for _, d in pairs(vals) do
+            -- If the last char is a ASCII 13 / ^M / <CR> then trim it
+            if string.sub(d, -1, -1) == "\13" then
+                d = string.sub(d, 1, -2)
+            end
             if d ~= "" then
-                -- If the last char is a ASCII 13 / ^M / <CR> then trim it
-                STATE.match_cnt = STATE.match_cnt + 1
-                if string.sub(d, -1, -1) == "\13" then
-                    d = string.sub(d, 1, -2)
-                end
-                table.insert(STATE.results, d)
+                table.insert(STATE.found_que, d)
+                STATE.found_cnt = STATE.found_cnt + 1
             end
         end
+
         local current_time = os.clock()
         if current_time - STATE.previous_print_time > MIN_PRINT_TIME then
             -- If print too often, it's hard to exit vim cause flood of messages appearing, and it's already hard enough to exit vim.
-            schedule_print(get_status_msg(STATE), false)
             STATE.previous_print_time = current_time
+            messages.set_status_msg(STATE, {print = STATE.started_adding, qf = true})
+        end
+
+        if first then
+            vim.schedule(
+                function()
+                    quickfix.setup_adding(STATE)
+                end
+            )
+        end
+        if found_was_empty then -- was empty but now we have results
+            -- The populating stops itself once it finishes it's found stack
+            vim.schedule(quickfix.populate)
         end
     end
 end
@@ -96,29 +83,17 @@ end
 --- The handler for when the spawned job exits
 local function on_exit()
     local STATE = get_state()
-    if STATE.mode ~= "searching" then
-        -- Search was aborted
-        return
-    end
-    if STATE.match_cnt > 0 then
-        local plural = "s"
-        if STATE.match_cnt == 1 then
-            plural = ""
+
+    if STATE.mode == modes.SEARCHING then
+        if #STATE.found_que > 0 then
+            -- Still adding
+            STATE.mode = modes.ADDING
+        else
+            -- Found stack empty, can stop immediately
+            STATE.mode = modes.DONE
         end
-        print(" Adding " .. STATE.match_cnt .. " result" .. plural .. " to the quickfix list...")
-        api.nvim_command("redraw!")
-        vim.schedule(
-            function()
-                -- Schedule it incase a lot of matches
-                quickfix.populate_with_results()
-            end
-        )
-    else
-        STATE.mode = ""
-        schedule_print(utils.get_done_msg(STATE), true)
-        -- sometimes prints comes after scheduled ones
-        print(utils.get_done_msg(STATE), false)
     end
+    messages.set_status_msg(STATE, {print = STATE.started_adding, qf = true})
 end
 
 --- Starts the async ripgrep job
@@ -128,7 +103,6 @@ local function spawn_job()
     local stderr = uv.new_pipe(false)
 
     local STATE = get_state()
-    print("Rgflow start search for:  " .. STATE.pattern)
     -- Append the following makes it too long (results in one having to press enter)
     -- .."  with  "..STATE.demo_cmd)
 
@@ -158,19 +132,19 @@ end
 
 local function get_demo_cmd(pattern, flags_list, path)
     -- The args are passe din as an array so the tokenisation is handled automatically,
-    -- whereas in bash instead of ` -g !**/static/*/jsapp/` one would do 
+    -- whereas in bash instead of ` -g !**/static/*/jsapp/` one would do
     -- ` -g '!**/static/*/jsapp/'` to prevent bash from expanding the globs.
-    -- 
+    --
     local escaped_flags = {}
     for _, flag in ipairs(flags_list) do
         table.insert(escaped_flags, vim.fn.shellescape(flag))
     end
-    return "rg " .. table.concat(escaped_flags, " ")  .. " " .. pattern .. " " .. path
+    return "rg " .. table.concat(escaped_flags, " ") .. " " .. pattern .. " " .. path
 end
 
 --- Prepares the global STATE to be used by the search.
 -- @return the global STATE
-local function set_state(pattern, flags, path)
+local function setup_search(pattern, flags, path)
     -- Update the setting's flags so it retains its value for the session.
     get_settings().cmd_flags = flags
 
@@ -183,7 +157,7 @@ local function set_state(pattern, flags, path)
     -- 1. Add the flags first to the Ripgrep command
     -- The args will never contain spaces, the search term might, but thats following below
     -- The args are passe din as an array so the tokenisation is handled automatically,
-    -- whereas in bash instead of ` -g !**/static/*/jsapp/` one would do 
+    -- whereas in bash instead of ` -g !**/static/*/jsapp/` one would do
     -- ` -g '!**/static/*/jsapp/'` to prevent bash from expanding the globs.
     local flags_list = vim.split(flags, " ")
 
@@ -199,37 +173,28 @@ local function set_state(pattern, flags, path)
     -- 3. Add the search path
     table.insert(rg_args, path)
 
-    local STATE = get_state()
-    STATE.mode = "searching"
-    STATE.rg_args = rg_args
-    STATE.demo_cmd = get_demo_cmd(pattern, flags_list, path)
-    STATE.pattern = pattern
-    STATE.path = path
-    STATE.error_cnt = 0
-    STATE.match_cnt = 0
-    STATE.results = {}
-    STATE.lines_added = 0
+    local demo_cmd = get_demo_cmd(pattern, flags_list, path)
+    set_state_searching(rg_args, demo_cmd, pattern, path)
 end
 
 --- From the UI, it starts the ripgrep search.
 function M.run(pattern, flags, path)
+    local STATE = get_state()
     -- Add a command to the history which can be invoked to repeat this search
     local rg_cmd = "lua require('rgflow').open([[" .. pattern .. "]], [[" .. flags .. "]], [[" .. path .. "]])"
     vim.fn.histadd("cmd", rg_cmd)
 
     local rg_installed = vim.fn.executable("rg") ~= 0
     if not rg_installed then
-        local STATE = get_state()
-        STATE.mode = ""
-        local msg = "rg is not avilable on path, have you installed RipGrep?"
-        schedule_print(msg, true)
+        STATE.mode = modes.idle
+        vim.api.nvim_err_writeln("rg is not avilable on path, have you installed RipGrep?")
         return
     end
 
     -- Global STATE used by the async job
-    set_state(pattern, flags, path)
+    setup_search(pattern, flags, path)
     -- Don't schedule the print, else may come after we finish!
-    print(get_status_msg(get_state()))
+    messages.set_status_msg(STATE, {print = true})
     spawn_job()
 end
 

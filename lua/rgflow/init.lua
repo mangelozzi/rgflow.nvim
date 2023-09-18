@@ -3,6 +3,7 @@ local ui = require("rgflow.ui")
 local quickfix = require("rgflow.quickfix")
 local search = require("rgflow.search")
 local get_state = require("rgflow.state").get_state
+local modes = require("rgflow.modes")
 
 local M = {}
 
@@ -56,22 +57,21 @@ M.search = search.run
 -- Aborts - Closes the UI if open, if searching will stop, if adding results will stop
 M.abort = function()
     local STATE = get_state()
-    if STATE.mode == "aborting" then
+    if STATE.mode == modes.ABORTING then
         print("Still aborting ...")
-    elseif STATE.mode == "" then
+    elseif STATE.mode == modes.IDLE then
         print("RgFlow not running.")
-    elseif STATE.mode == "open" then
+    elseif STATE.mode == modes.OPEN then
         M.close()
-        STATE.mode = ""
+        STATE.mode = modes.IDLE
         print("Aborted UI.")
-    elseif STATE.mode == "searching" then
+    elseif STATE.mode == modes.SEARCHING then
         local uv = vim.loop
         uv.process_kill(STATE.handle, "SIGTERM")
-        STATE.mode = ""
-        STATE.results = {} -- Free up memory
+        STATE.mode = modes.ABORTED
         print("Aborted searching.")
-    elseif STATE.mode == "adding" then
-        STATE.mode = "aborting"
+    elseif STATE.mode == modes.ADDING then
+        STATE.mode = modes.ABORTING
     -- Handed in quickfix.lua
     end
 end

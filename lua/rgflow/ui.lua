@@ -4,6 +4,8 @@ local utils = require("rgflow.utils")
 local search = require("rgflow.search")
 local get_settings = require("rgflow.settingslib").get_settings
 local get_state = require("rgflow.state").get_state
+local messages = require("rgflow.messages")
+local modes = require("rgflow.modes")
 
 local function setup_ui_autocommands(STATE)
     -- Clear old auto commands
@@ -128,20 +130,20 @@ function M.show_ui(pattern, flags, path)
     api.nvim_buf_set_keymap(STATE.bufh, "n", "<ESC>", "<cmd>lua rgflow.abort_start()<CR>", {noremap = true})
 
     api.nvim_command("redraw!")
-    STATE.mode = "open"
+    STATE.mode = modes.OPEN
     setup_ui_autocommands(STATE)
 end
 
 function M.open(pattern, flags, path)
     local STATE = get_state()
-    if STATE.mode == "open" and vim.api.nvim_win_is_valid(STATE.wini) then
+    if STATE.mode == modes.OPEN and vim.api.nvim_win_is_valid(STATE.wini) then
         print("Switched to currently open RgFlow")
         vim.fn.win_gotoid(STATE.wini)
         return
-    elseif STATE.mode == "searching" then
-        print("Currently searching... First Run the abort function: require('rgflow').abort")
-    elseif STATE.mode == "adding" then
-        print("Currently adding results ... First Run the abort function: require('rgflow').abort")
+    elseif STATE.mode == modes.SEARCHING then
+        print("Currently searching... First run the abort function: require('rgflow').abort")
+    elseif STATE.mode == modes.ADDING then
+        print("Currently adding results ... First run the abort function: require('rgflow').abort")
     else
         M.show_ui(pattern, flags, path)
     end
@@ -163,11 +165,13 @@ function M.start()
     local flags, pattern, path = unpack(api.nvim_buf_get_lines(bufi, 0, 3, true))
 
     if pattern == "" then
-        utils.print_error("PATTERN must not be blank.")
+        --- Prints a @msg to the command line with error highlighting.
+        -- Does not raise an error (like echoerr does)
+        vim.api.nvim_echo({{"PATTERN must not be blank.", "ErrorMsg"}}, false, {})
         return
     end
     if path == "" then
-        utils.print_error("PATH must not be blank. To use the current dir try ./")
+        vim.api.nvim_echo({{"PATH must not be blank. To use the current dir use ./", "ErrorMsg"}}, false, {})
         return
     end
 
@@ -182,7 +186,7 @@ end
 function M.close()
     local STATE = get_state()
     api.nvim_win_close(STATE.wini, true)
-    STATE.mode = ""
+    STATE.mode = modes.IDLE
 end
 
 -- Define a function to create a floating terminal buffer and run a command
