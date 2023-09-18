@@ -39,6 +39,8 @@ Showing more of the features:
 - I can never remember include/exclude globs, this helps.
     - Also has autocomplete for RipGrep flags/options with descriptions
 
+- Tested on Linux and Windows
+
 ## Intro
 
 ## Installation

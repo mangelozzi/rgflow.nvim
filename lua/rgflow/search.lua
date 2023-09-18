@@ -9,6 +9,10 @@ local get_settings = settings.get_settings
 
 local MIN_PRINT_TIME = 0.5 -- A float in seconds
 
+local function quote_echo_msg(msg)
+    return "'" .. msg:gsub("'", "''") .. "'"
+end
+
 --- Schedules a message in the event loop to print.
 -- @param msg - The message to print
 local function schedule_print(msg, echom)
@@ -20,7 +24,7 @@ local function schedule_print(msg, echom)
         vim.schedule_wrap(
             function()
                 -- In vim escape a single quote with two quotes.
-                vim.cmd(cmd .. "'" .. msg:gsub("'", "''") .. "'")
+                vim.cmd(cmd .. quote_echo_msg(msg))
             end
         )
     )
@@ -50,7 +54,7 @@ local function on_stderr(err, data)
         0,
         vim.schedule_wrap(
             function()
-                api.nvim_command('echoerr "' .. data .. '"')
+                api.nvim_command('echoerr '.. quote_echo_msg(data))
             end
         )
     )
