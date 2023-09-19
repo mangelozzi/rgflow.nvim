@@ -63,7 +63,7 @@ local function on_stdout(err, data)
         if current_time - STATE.previous_print_time > MIN_PRINT_TIME then
             -- If print too often, it's hard to exit vim cause flood of messages appearing, and it's already hard enough to exit vim.
             STATE.previous_print_time = current_time
-            messages.set_status_msg(STATE, {print = STATE.started_adding, qf = true})
+            messages.set_status_msg(STATE, {print = not STATE.started_adding, qf = true})
         end
 
         if first then
@@ -93,7 +93,7 @@ local function on_exit()
             STATE.mode = modes.DONE
         end
     end
-    messages.set_status_msg(STATE, {print = STATE.started_adding, qf = true})
+    messages.set_status_msg(STATE, {print = not STATE.started_adding, qf = true})
 end
 
 --- Starts the async ripgrep job

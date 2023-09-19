@@ -125,4 +125,9 @@ end
 -- Auto complete with rgflags or buffer words or filepaths depending on the input box they are on
 M.auto_complete = require("rgflow.autocomplete").auto_complete
 
+M.print_status = function()
+    vim.print(require("rgflow.state").get_state())
+    vim.fn.feedkeys(vim.api.nvim_replace_termcodes(":messages<CR>", true, nil, true), "n")
+end
+
 return M

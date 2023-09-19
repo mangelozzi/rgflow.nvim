@@ -26,6 +26,7 @@ return {
                 ["<leader>ra"] = "open_again", -- open UI - search pattern = Previous search pattern
                 ["<leader>rx"] = "abort",      -- close UI / abort searching / abortadding results
                 ["<leader>rc"] = "print_cmd",  -- Print a version of last run rip grep that can be pasted into a shell
+                ["<leader>r?"] = "print_status",  -- Print info about the current state of rgflow (mostly useful for deving on rgflow) 
             },
             -- Visual/select mode maps
             x = {
