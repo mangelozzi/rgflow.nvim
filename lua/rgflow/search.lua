@@ -93,7 +93,7 @@ local function on_exit()
             STATE.mode = modes.DONE
         end
     end
-    messages.set_status_msg(STATE, {print = not STATE.started_adding, qf = true})
+    messages.set_status_msg(STATE, {print = true, history = STATE.found_cnt == 0, qf = true})
 end
 
 --- Starts the async ripgrep job

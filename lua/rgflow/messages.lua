@@ -23,6 +23,9 @@ end
 
 function M.set_status_msg(STATE, options)
     -- Options can have the following booleans: history, print, qf
+    -- history, will be saved to :messages
+    -- print, show message in the command area
+    -- qf, update the qf title
     vim.schedule(
         function()
             local qf_size = options.qf_size or utils.get_qf_size()
