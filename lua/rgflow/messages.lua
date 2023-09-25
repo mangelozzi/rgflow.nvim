@@ -9,7 +9,7 @@ function M.calc_status_msg(STATE, qf_size)
     msg = msg .. STATE.mode
     -- can't use utils.get_qf_cnt(), because the use calc_status_msg within setqflist() calls
     if #STATE.found_que == 0 then
-        msg = msg .. " " .. qf_size .. " results"
+        msg = msg .. " " .. STATE.found_cnt .. " results"
     else
         msg = msg .. " " .. qf_size .. " of " .. STATE.found_cnt
     end

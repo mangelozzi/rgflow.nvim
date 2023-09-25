@@ -41,7 +41,8 @@ local function calc_positions(line)
 end
 
 local function clear_pattern_highlights(STATE)
-    vim.api.nvim_buf_clear_namespace(0, STATE.highlight_namespace_id, 0, -1)
+    local qf_buf_nr = vim.fn.getqflist({qfbufnr = true}).qfbufnr
+    vim.api.nvim_buf_clear_namespace(qf_buf_nr, STATE.highlight_namespace_id, 0, -1)
 end
 
 -- Calculate the positions of the mark groups with RgFlowInputPattern to highlight
@@ -181,7 +182,6 @@ function M.mark_operator(add_not_remove, mode)
     -- Don't create a new qf list, so use 'r'. Applies to colder/cnewer etc.
     vim.fn.setqflist({}, "r", {title = M.calc_qf_title(STATE, #qf_list), items = qf_list})
     apply_pattern_highlights()
-
     vim.fn.winrestview(win_pos)
 end
 
@@ -239,7 +239,7 @@ end
 
 function M.setup_adding(STATE)
     set_state_adding()
-    -- clear_pattern_highlights(STATE)
+    clear_pattern_highlights(STATE)
     local create_qf_options = {title = M.calc_qf_title(STATE, 0), pattern = STATE.pattern}
     if get_settings().quickfix.new_list_always_appended then
         create_qf_options.nr = "$"
