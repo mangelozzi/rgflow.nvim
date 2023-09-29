@@ -1,8 +1,8 @@
 -- Default settings
 return {
-    -- When Neovim start, what the default rgflow search flags will be set to
-    -- If you start a new search, it will use the cmd_flags from the previous search
-    -- Once you exit Neovim it enter again, they will be reset to this value
+    -- Set the default rip grep flags and options for when running a search via
+    -- RgFlow. Once changed via the UI, the previous search flags are used for 
+    -- each subsequent search (until Neovim restarts).
     cmd_flags = "--smart-case --fixed-strings --no-fixed-strings --no-ignore --ignore --max-columns 500",
 
     -- After a search, whether to set incsearch to be the pattern searched for
@@ -11,9 +11,12 @@ return {
     -- The vim `completeopt` for when using autocomplete with the RgFlow UI open
     completeopt = "menuone,noinsert,noselect",
 
-    -- Enable / disable default mappings
+    -- ENABLE / DISABLE DEFAULT MAPPINGS
+    -- Mappings to trigger RgFlow functions
     default_trigger_mappings = false,
+    -- These mappings are only active when the RgFlow UI (panel) is open
     default_ui_mappings = true,
+    -- QuickFix window only mapping
     default_quickfix_mappings = false,
 
     mappings = {
