@@ -90,8 +90,7 @@ end
 
 -- Print a version of last run rip grep that can be pasted into a shell
 M.print_cmd = function()
-    local STATE = get_state()
-    return print(STATE.demo_cmd)
+    return print(M.get_cmd())
 end
 
 M.qf_delete = function()

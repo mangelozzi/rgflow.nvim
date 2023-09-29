@@ -3,20 +3,22 @@
 Get in the flow with RipGrep.
 The more you use this plugin, the better you become at using RipGrep from the CLI.
 Not simply a wrapper which could be replaced by a few lines of config.
+It's a very simple to use tool aspiring to the Unix philosophy.
 
-Essence of the plugin:
+3 second intro:
 
-<img src="https://user-images.githubusercontent.com/19764314/265692852-9f070779-3f0e-441e-be61-812eb0cd0dfe.gif">
+<img src="https://github.com/mangelozzi/rgflow.nvim/assets/19764314/f75cd129-126b-457a-b9c5-ee5c14775069" alt="Core of what the plug in does">
 
 Showing more of the features:
 
-<img src="https://user-images.githubusercontent.com/19764314/265692891-cd2f5f49-fe2c-4e29-baee-816453976ff0.gif">
+<img src="https://github.com/mangelozzi/rgflow.nvim/assets/19764314/7cace572-086b-46e9-94a5-0a70da0c941c" alt="Showing more details of the plug in">
 
 ## QuickStart Guide (TLDR)
 
-1. Set your plug in manager to use `mangelozzi/nvim-rgflow.lua` and install the plugin.
-2. Create a file for the configuration, e.g. `~/.config/nvim/after/plugin/rgflow.lua`
-3. Paste in the minimal configuration code:
+1. Ensure you have [RipGrep](https://github.com/BurntSushi/ripgrep) installed
+2. Set your plug in manager to use `mangelozzi/nvim-rgflow.lua` and install the plugin.
+3. Create a file for the configuration, e.g. `~/.config/nvim/after/plugin/rgflow.lua`
+4. Paste in the minimal configuration code:
 ```lua
 require('rgflow').setup(
     {
@@ -34,11 +36,11 @@ require('rgflow').setup(
     }
 )
 ```
-4. After restarting Neovim, press `<leader>rg` to open the RgFlow UI
-5. Type in a search pattern and press `<ENTER>`
-6. A search will run and populate the QuickFix window
-7. Press `dd` to delete a QuickFix entry, or select a visual range and press `d`
-8. Press `TAB` to mark a line and `<S-TAB>` to unmark a line, a line can be marked more than once
+5. After restarting Neovim, press `<leader>rg` to open the RgFlow UI
+6. Type in a search pattern and press `<ENTER>`
+7. A search will run and populate the QuickFix window
+8. Press `dd` to delete a QuickFix entry, or select a visual range and press `d`
+9. Press `TAB` to mark a line and `<S-TAB>` to unmark a line, a line can be marked more than once
 
 If you like this plugin please give it a :star:! If you don't, you should try Windows.
 
