@@ -69,10 +69,10 @@ Bonus note: Pressing `<TAB>` when the UI panel is open provides autocomplete for
     - You can set it's theme colours. However if you are someone you likes to 
       change color scheme a lot, if you use the defaults they will update to 
       some sane defaults based on the applied scheme.
-
+    - Searches are appended to your command history, so you can easily repeat previous searches
+        - E.g. `:<up>` 
 - I can never remember include/exclude globs, this helps.
     - Also has autocomplete for RipGrep flags/options with descriptions
-
 - Tested on Linux and Windows
 
 ## Installation
