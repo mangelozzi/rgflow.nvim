@@ -186,8 +186,16 @@ function M.mark_operator(add_not_remove, mode)
 end
 
 local function setup_qf_height()
-    local height = math.min(utils.get_qf_size() + 1, get_settings().quickfix.max_height_lines)
     local win = vim.fn.getqflist({winid = 1}).winid
+    local screen_height = vim.api.nvim_get_option('lines')
+    local current_qf_height = api.nvim_win_get_height(win)
+    if current_qf_height > screen_height / 2 then
+        -- If the quickfix is currently taking up the whole screen, i.e. it is the
+        -- only window, that setting its height forces the command bar to fill the
+        -- whole screen
+        return
+    end
+    local height = math.min(utils.get_qf_size() + 1, get_settings().quickfix.max_height_lines)
     api.nvim_win_set_height(win, height)
 end
 
