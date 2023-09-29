@@ -32,7 +32,8 @@ local STATE = {
     demo_cmd = nil,     -- what the command looks like if where to enter it into bash
     error_cnt = 0,      -- Search results error count
     found_cnt = 0,      -- Current count of results for current search
-    started_adding = false,      -- Currently added results for the current search
+    started_adding = false,-- Currently added results for the current search
+    search_exit = false,-- Whether the spawn rg search phase has exitted (currently not used)
     found_que = {},     -- Search results that have been found but not added to the quickfix list yet
     hl_positions = {},  -- The line numbers mapping to tables of zs/ze positions, see comment at top of file
     previous_print_time = 0,
@@ -56,6 +57,7 @@ function M.set_state_searching(rg_args, demo_cmd, pattern, path)
     STATE.found_que = {}
     STATE.found_cnt = 0
     STATE.started_adding = false
+    STATE.search_exit = false
 end
 
 function M.set_state_adding()

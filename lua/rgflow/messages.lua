@@ -3,10 +3,12 @@ local utils = require("rgflow.utils")
 
 local M = {}
 
-
 function M.calc_status_msg(STATE, qf_size)
     local msg = " "
-    msg = msg .. STATE.mode
+    if STATE.mode ~= modes.DONE then
+        -- In the quickfix window looks messey to see "done" in the title
+        msg = msg .. STATE.mode
+    end
     -- can't use utils.get_qf_cnt(), because the use calc_status_msg within setqflist() calls
     if #STATE.found_que == 0 then
         msg = msg .. " " .. STATE.found_cnt .. " results"

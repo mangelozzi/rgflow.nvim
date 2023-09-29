@@ -83,7 +83,7 @@ end
 --- The handler for when the spawned job exits
 local function on_exit()
     local STATE = get_state()
-
+    STATE.search_exit = true
     if STATE.mode == modes.SEARCHING then
         if #STATE.found_que > 0 then
             -- Still adding
