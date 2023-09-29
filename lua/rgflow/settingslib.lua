@@ -73,6 +73,10 @@ local function setup_hi_groups(user_colors)
 end
 
 function M.apply_keymaps(mappings)
+    if not mappings then
+        -- If not mappings to be applied
+        return
+    end
     for mode, mode_mappings in pairs(mappings) do
         for keymap, func_name in pairs(mode_mappings) do
             local options = func_name_to_keymap_opts[func_name]
@@ -118,9 +122,24 @@ local function create_sync_colors_autocmd()
     )
 end
 
+local function handle_disable_mappings(user_settings, defaults, settings_key, mapping_key)
+    local enable
+    if user_settings[settings_key] == nil then
+        enable = defaults[settings_key]
+    else
+        enable = user_settings[settings_key]
+    end
+    if not enable then
+        defaults.mappings[mapping_key] = nil
+    end
+end
+
 function M.setup(user_settings)
     local STATE = require("rgflow.state").get_state()
     local defaults = require('rgflow.defaults')
+    handle_disable_mappings(user_settings, defaults, 'default_trigger_mappings', 'trigger')
+    handle_disable_mappings(user_settings, defaults, 'default_ui_mappings', 'ui')
+    handle_disable_mappings(user_settings, defaults, 'default_quickfix_mappings', 'quickfix')
     local settings = vim.tbl_deep_extend("force", defaults, user_settings)
     apply_settings(settings)
     STATE.applied_settings = settings

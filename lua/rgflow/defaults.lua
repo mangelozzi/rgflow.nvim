@@ -1,19 +1,20 @@
 -- Default settings
 return {
-    -- For some reason --no-messages makes it stop working
-    -- seprated by a space
-    -- WARNING !!! Glob for '-g *{*}' will not use .gitignore file: https://github.com/BurntSushi/ripgrep/issues/2252
-    cmd_flags = "--smart-case -g *.{*,py} -g !*.{min.js,pyc} --fixed-strings --no-fixed-strings --no-ignore --ignore -M 500",
+    -- When Neovim start, what the default rgflow search flags will be set to
+    -- If you start a new search, it will use the cmd_flags from the previous search
+    -- Once you exit Neovim it enter again, they will be reset to this value
+    cmd_flags = "--smart-case --fixed-strings --no-fixed-strings --no-ignore --ignore --max-columns 500",
 
     -- After a search, whether to set incsearch to be the pattern searched for
     incsearch_after = true,
 
-    -- ui_top_line_char = "▄",
-    --  Example chars: ━━━ ═══ ███  ▀▀▀ ▃▃▃   
-    ui_top_line_char = "▃",
-
     -- The vim `completeopt` for when using autocomplete with the RgFlow UI open
     completeopt = "menuone,noinsert,noselect",
+
+    -- Enable / disable default mappings
+    default_trigger_mappings = false,
+    default_ui_mappings = true,
+    default_quickfix_mappings = false,
 
     mappings = {
         -- Mappings that all always present
@@ -123,5 +124,9 @@ return {
         ---- Quickfix
         RgFlowQfPattern     = nil, -- The highlighting of the pattern in the quickfix results
     },
-}
 
+    -- ui_top_line_char = "▄",
+    --  Example chars: ━━━ ═══ ███  ▀▀▀ ▃▃▃   
+    ui_top_line_char = "▃",
+
+}
