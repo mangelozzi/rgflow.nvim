@@ -7,16 +7,16 @@ It's a very simple to use tool aspiring to the Unix philosophy.
 
 3 second intro:
 
-<img src="https://github.com/mangelozzi/rgflow.nvim/assets/19764314/f75cd129-126b-457a-b9c5-ee5c14775069" alt="Core of what the plug in does">
+<img src="https://github.com/mangelozzi/rgflow.nvim/assets/19764314/f75cd129-126b-457a-b9c5-ee5c14775069" alt="Core of what the plugin does">
 
 Showing more of the features:
 
-<img src="https://github.com/mangelozzi/rgflow.nvim/assets/19764314/7cace572-086b-46e9-94a5-0a70da0c941c" alt="Showing more details of the plug in">
+<img src="https://github.com/mangelozzi/rgflow.nvim/assets/19764314/7cace572-086b-46e9-94a5-0a70da0c941c" alt="Showing more details of the plugin">
 
-## QuickStart Guide (TLDR)
+## QuickStart Guide (TL;DR)
 
 1. Ensure you have [RipGrep](https://github.com/BurntSushi/ripgrep) installed
-2. Set your plug in manager to use `mangelozzi/nvim-rgflow.lua` and install the plugin.
+2. Set your plugin manager to use `mangelozzi/nvim-rgflow.lua` and install the plugin.
 3. Create a file for the configuration, e.g. `~/.config/nvim/after/plugin/rgflow.lua`
 4. Paste in the minimal configuration code:
 ```lua
@@ -126,7 +126,7 @@ And then `:PackerSync` etc. to install it.
             -- Normal mode maps
             n = {
                 ["<CR>"]  = "start", -- With the ui open, start a search with the current parameters
-                ["<ESC>"] = "close", -- With the ui open, disgard and close the UI window
+                ["<ESC>"] = "close", -- With the ui open, discard and close the UI window
                 ["?"]     = "show_rg_help", -- Show the rg help in a floating window, which can be closed with q or <ESC> or the usual <C-W><C-C>
                 ["<BS>"]  = "nop",   -- No operation
                 ["<C-^>"] = "nop",   -- No operation
@@ -224,6 +224,16 @@ require("rgflow").setup(
 | `require('rgflow').auto_complete`     | Auto complete based on input box context.
 | `require('rgflow').print_status`      | Print info about the current state of rgflow.
 
+## Bonus Tips
+
+- This plugin compliments `:Cfilter` very well. 
+    - `:Cfilter` is built into Vim/Neovim for filtering your QuickFix lists.
+    - Although it comes with Neovim, it must first be enabled with: `vim.cmd('packadd cfilter')`
+    - `:Cfilter foo` will limit your QuickFix results to only those that contain the phrase `foo`
+    - `:Cfilter! foo` does the inverse, only those that **don't** contain `foo` are kept.
+- By using `Cfilter` and this plugin's delete function, you can quickly message your QuickFix list, making it ready to unleash a `:cdo` and `:cfdo` ... unlocking all sorts of super powers.
+    - e.g. To substitute the word `foo` for `bar` on each QuickFix match then save the modified file:
+        - `:cdo s/foo/bar/ | update`
 
 ## Contributing
 
