@@ -1,6 +1,10 @@
 local M = {}
 local api = vim.api
 
+function M.trim_whitespace(s)
+    return s:gsub("^%s*(.-)%s*$", "%1")
+end
+
 --- Returns the start and end line range for a given mode.
 -- If the mode is visual, then the line range which the visual mode spands is
 -- returned, ignoring column positions.

@@ -134,11 +134,29 @@ function M.show_ui(pattern, flags, path)
     setup_ui_autocommands(STATE)
 end
 
+local function set_patttern_if_blank(new_pattern)
+    if not new_pattern or utils.trim_whitespace(new_pattern) == "" then
+        return
+    end
+    local bufi = get_state().bufi
+    local current_pattern = unpack(api.nvim_buf_get_lines(bufi, 1, 2, true))
+    if utils.trim_whitespace(current_pattern) == "" then
+        api.nvim_buf_set_lines(bufi, 1, 2, true, {new_pattern})
+        return true
+    end
+    return false
+end
+
 function M.open(pattern, flags, path)
     local STATE = get_state()
     if STATE.mode == modes.OPEN and vim.api.nvim_win_is_valid(STATE.wini) then
-        print("Switched to currently open RgFlow")
+        local updated = set_patttern_if_blank(pattern)
         vim.fn.win_gotoid(STATE.wini)
+        if updated == true then
+            print("RgFlow pattern was blank and updated to: " .. pattern)
+        else
+            print("Switched to currently open RgFlow")
+        end
         return
     elseif STATE.mode == modes.SEARCHING then
         print("Currently searching... First run the abort function: require('rgflow').abort")

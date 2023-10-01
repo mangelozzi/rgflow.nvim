@@ -40,7 +40,9 @@ end
 M.open_visual = function()
     local content = utils.get_visual_selection(vim.fn.mode())
     local first_line = utils.get_first_line(content)
-    ui.open(first_line)
+    -- Exit visual mode
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, true, true), "x", true)
+    ui.open(utils.trim_whitespace(first_line))
 end
 
 -- With the UI pop up open, start searching with the currently filled out fields

@@ -41,6 +41,10 @@ local function rshift(a, b)
 end
 -- Function to convert a 24-bit color value to its R, G, and B components
 local function bit24_to_rgb(color_value)
+    if color_value == nil then
+        -- If theres a problem return gray, just incase
+        return 128, 128, 128
+    end
     local r = rshift(band(color_value, 0xFF0000), 16)
     local g = rshift(band(color_value, 0x00FF00), 8)
     local b = band(color_value, 0x0000FF)
@@ -161,7 +165,6 @@ function M.get_matches_color(is_ui_light)
         end
     end
 end
-
 
 function M.get_default_colors()
     if M.get_hi_group_exists(0, "Normal") then
