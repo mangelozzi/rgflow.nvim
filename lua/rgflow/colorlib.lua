@@ -146,13 +146,22 @@ function M.get_pattern_color(is_ui_light)
 end
 
 function M.get_matches_color(is_ui_light)
+    local success, result
     for _, group_name in pairs({"Statement", "Identifier"}) do
-        if M.get_hi_group_exists(0, group_name) then
-            return M.get_contrasting_by_group(0, group_name, is_ui_light)
+        success, result = pcall(function()
+            if M.get_hi_group_exists(0, group_name) then
+                return M.get_contrasting_by_group(0, group_name, is_ui_light)
+            end
+        end)
+        if success then
+            return result
+        else
+            -- If an Error or no matching group is found or an error occurred, return the default color
+            return M.auto_adjust_contrast(255, 255, 0, is_ui_light)
         end
     end
-    return M.auto_adjust_contrast(255, 255, 0, is_ui_light)
 end
+
 
 function M.get_default_colors()
     if M.get_hi_group_exists(0, "Normal") then
