@@ -39,7 +39,7 @@ function M.get_visual_selection(mode)
     local _, l1, c1 = unpack(vim.fn.getpos("v"))
     local _, l2, c2 = unpack(vim.fn.getpos("."))
     local line_start, line_end, column_start, column_end = l1, l2, c1, c2
-    if l1 > l2 or l1 == l2 and c2 > c1 then
+    if l1 > l2 or l1 == l2 and c2 < c1 then
         line_start, line_end, column_start, column_end = l2, l1, c2, c1
     end
     line_start = line_start - 1

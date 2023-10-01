@@ -149,6 +149,7 @@ end
 
 function M.open(pattern, flags, path)
     local STATE = get_state()
+    pattern = utils.trim_whitespace(pattern)
     if STATE.mode == modes.OPEN and vim.api.nvim_win_is_valid(STATE.wini) then
         local updated = set_patttern_if_blank(pattern)
         vim.fn.win_gotoid(STATE.wini)
