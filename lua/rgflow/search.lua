@@ -167,6 +167,12 @@ local function setup_search(pattern, flags, path)
     end
 
     -- 2. Add the pattern
+    -- Check if pattern starts with '--' and prefix it with '\'
+    if string.sub(pattern, 1, 1) == '-' then
+        -- https://github.com/BurntSushi/ripgrep/issues/624
+        -- If search term starts with darh, then add a `--` token beforehand
+        table.insert(rg_args, '--')
+    end
     -- Tokenisation handled by spawn - will handle if it contains multiple single and double quotes
     table.insert(rg_args, pattern)
 
