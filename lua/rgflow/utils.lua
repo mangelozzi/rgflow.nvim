@@ -2,8 +2,10 @@ local M = {}
 local api = vim.api
 
 function M.trim_whitespace(s)
-    if s ~= nil then
+    if s then
         return s:gsub("^%s*(.-)%s*$", "%1")
+    else
+        return ''
     end
 end
 
