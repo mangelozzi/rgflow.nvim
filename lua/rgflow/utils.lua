@@ -2,7 +2,9 @@ local M = {}
 local api = vim.api
 
 function M.trim_whitespace(s)
-    return s:gsub("^%s*(.-)%s*$", "%1")
+    if s ~= nil then
+        return s:gsub("^%s*(.-)%s*$", "%1")
+    end
 end
 
 --- Returns the start and end line range for a given mode.
