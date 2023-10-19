@@ -11,33 +11,66 @@ local set_state_adding = require("rgflow.state").set_state_adding
 local messages = require("rgflow.messages")
 local modes = require("rgflow.modes")
 
--- Since adding a lot of items to the quickfix window blocks the editor
--- Add a few then defer, continue. Chunk size of 10'000 makes lua run out memory.
-local CHUNK_SIZE = 1000
+local QF_PATTERN = "^([^:]+):(%d+):(%d+):(.-)$"
+local ZS_ZE_LEN = #zs_ze
 
 function M.calc_qf_title(STATE, qf_count)
     return messages.calc_status_msg(STATE, qf_count)
 end
 
-local function calc_positions(line)
-    -- There maybe be more than one match per a line
-    local positions = {}
-    local start = nil
-    local match_cnt = 0
-    for i = 1, #line do
-        local char = line:sub(i, i)
-        if char == zs_ze then
-            match_cnt = match_cnt + 1
-            if start then
-                table.insert(positions, {zs = start, ze = i - match_cnt})
-                start = nil
-            else
-                start = i - match_cnt
-            end
-        end
+local function get_qf_buffer_lines(start_idx, end_idx)
+    -- dont iterate getqflist entries because they dont return the filename, which is before each entry
+    local qf_buf_nr = vim.fn.getqflist({qfbufnr = true}).qfbufnr
+    local lines = vim.api.nvim_buf_get_lines(qf_buf_nr, start_idx - 1, end_idx, true)
+    return lines
+end
+
+local function extractQfInfo(line)
+    local filename, lnum, col, text = line:match(QF_PATTERN)
+    return {
+        filename = filename,
+        lnum = tonumber(lnum),
+        col = col,
+        text = text
+    }
+end
+
+local function correct_info(info, match_cnt)
+    -- Remove the effects of the added zs_ze delimiters
+    -- the colnum reported by rg with include the ze_ze, subtract it
+    if not info.col then
+        -- Sometimes no match if the line truncated cause its too long
+        return
     end
-    -- local clean_line = line:gsub(zs_ze, "")
-    return positions
+    local end_pos = info.text:find(zs_ze, info.col + 1, true)
+    if not end_pos then
+        -- Sometimes no match if the line truncated cause its too long
+        return
+    end
+    local start_idx = info.col - (ZS_ZE_LEN * match_cnt * 2)
+    local end_idx = end_pos - (ZS_ZE_LEN * (match_cnt + 1) * 2)
+    info.col = start_idx
+    info.end_col = end_idx
+    info.text2 = info.text
+    info.text = info.text:gsub(zs_ze, "")
+end
+
+local function parseQfLines(buffer)
+    local ret = {}
+    local match_cnt = 0
+    local previous_line = nil
+    for _, line in ipairs(buffer) do
+        local info = extractQfInfo(line)
+        if info.text == previous_line then
+            match_cnt = match_cnt + 1
+        else
+            match_cnt = 0
+            previous_line = info.text
+        end
+        correct_info(info, match_cnt)
+        table.insert(ret, info)
+    end
+    return ret
 end
 
 local function clear_pattern_highlights(STATE)
@@ -45,56 +78,44 @@ local function clear_pattern_highlights(STATE)
     vim.api.nvim_buf_clear_namespace(qf_buf_nr, STATE.highlight_namespace_id, 0, -1)
 end
 
--- Calculate the positions of the mark groups with RgFlowInputPattern to highlight
-local function calc_pattern_highlights(start_idx, end_idx)
-    local STATE = get_state()
-    start_idx = start_idx or 1
-    end_idx = end_idx or #STATE.hl_positions
-    local qf_buf_nr = vim.fn.getqflist({qfbufnr = true}).qfbufnr
-
-    -- dont iterate getqflist entries because they dont return the filename, which is before each entry
-    local lines = vim.api.nvim_buf_get_lines(qf_buf_nr, start_idx - 1, end_idx, true)
-    for i, line in ipairs(lines) do
-        -- local start_col, end_col = 1, 0
-        STATE.hl_positions[start_idx + i - 1] = calc_positions(line)
-    end
-
-    -- vim.api.nvim_buf_set_option(qf_buf_nr, 'modifiable', true)
-    -- vim.cmd('%s///g')
-    -- vim.api.nvim_buf_set_option(qf_buf_nr, 'modifiable', false)
-
-    -- Only operates linewise, since 1 Quickfix entry is tied to 1 line.
-    -- local clean_line = line:gsub(zs_ze, "")
-
-    -- remove zs_ze marks
-    local qf_list = vim.fn.getqflist()
-    for i = start_idx, end_idx do
-        qf_list[i]["text"] = string.gsub(qf_list[i]["text"], zs_ze, "")
-    end
-    local win_pos = vim.fn.winsaveview()
-    vim.fn.setqflist({}, "r", {title = M.calc_qf_title(STATE, #qf_list), items = qf_list})
-    vim.fn.winrestview(win_pos)
+local function apply_line_hl(STATE, lnum, start_col, end_col)
+    vim.api.nvim_buf_add_highlight(0, STATE.highlight_namespace_id, "RgFlowQfPattern", lnum - 1, start_col, end_col)
 end
 
 -- Mark groups with RgFlowInputPattern for when search terms highlight goes away
-local function apply_pattern_highlights(start_idx, end_idx)
+local function set_and_apply_pattern_highlights(start_idx, end_idx)
     local STATE = get_state()
-    if not start_idx and not end_idx then
-        clear_pattern_highlights(STATE)
-    end
+    local items = vim.fn.getqflist({items = true}).items
+    local buffer_lines = get_qf_buffer_lines(start_idx, end_idx)
+
     start_idx = start_idx or 1
-    end_idx = end_idx or #STATE.hl_positions
-    for line_nr = start_idx, end_idx do
-        local positions = STATE.hl_positions[line_nr]
-        for _, position in ipairs(positions) do
-            vim.api.nvim_buf_add_highlight(
-                0,
-                STATE.highlight_namespace_id,
-                "RgFlowQfPattern",
-                line_nr - 1,
-                position["zs"],
-                position["ze"]
-            )
+    end_idx = end_idx or #items
+    for item_nr = start_idx, end_idx do
+        local item = items[item_nr]
+        -- buffer_lines is only about the chunk size, where iten_nr is the full range of qf list
+        local line = buffer_lines[item_nr - start_idx + 1]
+        local text_start_idx = #line - #item.text
+        if item.end_col then
+            -- might not be a match due to truncation of line
+            item.user_data = {
+                hl_start = text_start_idx + item.col - 1,
+                hl_end = text_start_idx + item.end_col
+            }
+            apply_line_hl(STATE, item_nr, item.user_data.hl_start, item.user_data.hl_end)
+        end
+    end
+    -- Save the user data to the QF List
+    vim.fn.setqflist({}, "r", {title = M.calc_qf_title(STATE, #items), items = items})
+end
+
+-- Mark groups with RgFlowInputPattern for when search terms highlight goes away
+local function apply_pattern_highlights()
+    local STATE = get_state()
+    clear_pattern_highlights(STATE)
+    local items = vim.fn.getqflist({items = true}).items
+    for i, item in ipairs(items) do
+        if item.user_data then
+            apply_line_hl(STATE, i, item.user_data.hl_start, item.user_data.hl_end)
         end
     end
 end
@@ -187,7 +208,7 @@ end
 
 local function setup_qf_height()
     local win = vim.fn.getqflist({winid = 1}).winid
-    local screen_height = vim.api.nvim_get_option('lines')
+    local screen_height = vim.api.nvim_get_option("lines")
     local current_qf_height = api.nvim_win_get_height(win)
     if current_qf_height > screen_height / 2 then
         -- If the quickfix is currently taking up the whole screen, i.e. it is the
@@ -210,7 +231,7 @@ function M.populate()
         return
     end
 
-    local cnt = math.min(#STATE.found_que, CHUNK_SIZE)
+    local cnt = math.min(#STATE.found_que, get_settings().batch_size)
     local start_idx = utils.get_qf_size() + 1
     local end_idx = start_idx + cnt - 1
 
@@ -229,14 +250,19 @@ function M.populate()
     -- local chunk_lines = {unpack(STATE.added, start_idx, end_idx)}
     local qf_size = utils.get_qf_size()
     local new_qf_size = qf_size + #buffer
-    vim.fn.setqflist({}, "a", {lines = buffer, title = M.calc_qf_title(STATE, new_qf_size)})
+
+    local qf_info = {
+        items = parseQfLines(buffer),
+        title = M.calc_qf_title(STATE, new_qf_size)
+    }
+    vim.fn.setqflist({}, "a", qf_info)
     STATE.started_adding = true
     if final_run then
         messages.set_status_msg(STATE, {history = true, print = true})
     end
 
-    calc_pattern_highlights(start_idx, end_idx)
-    apply_pattern_highlights(start_idx, end_idx)
+    set_and_apply_pattern_highlights(start_idx, end_idx)
+    -- apply_pattern_highlights()
 
     if #STATE.found_que > 0 then
         -- If the list of found matches

@@ -19,6 +19,12 @@ return {
     -- QuickFix window only mapping
     default_quickfix_mappings = false,
 
+    -- Since adding a lot of items to the quickfix window blocks the editor for
+    -- a long time, we rather add search matches in batches, and then defer.
+    -- The larger the batch size, the faster search results will be added, but 
+    -- the more laggy the editor will be while adding results (defers less often). 
+    batch_size = 500,
+
     mappings = {
         -- Mappings that all always present
         trigger = {

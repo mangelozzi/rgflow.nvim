@@ -42,7 +42,7 @@ require('rgflow').setup(
 8. Press `dd` to delete a QuickFix entry, or select a visual range and press `d`
 9. Press `TAB` to mark a line and `<S-TAB>` to unmark a line, a line can be marked more than once
 
-If you like this plugin please give it a :star:! If you don't, you should try Windows.
+If you like this plugin please give it a :star:!
 
 Bonus note: Pressing `<TAB>` when the UI panel is open provides autocomplete for the line you are on (rip grep flags/cwords/filepaths)
 
@@ -214,6 +214,7 @@ require("rgflow").setup(
 | `require('rgflow').nop`               | No operation, useful for disabling hotkeys.
 | `require('rgflow').get_cmd`           | Get last run rip grep command.
 | `require('rgflow').print_cmd`         | Print last run rip grep command.
+| `require('rgflow').qf_apply_hl`       | After removing lines from the QF list by some means outside of RgFlow (e.g. `:Cfilter` or `:Cfilter!` command), one can sync the highlighting positions again.
 | `require('rgflow').qf_delete`         | QuickFix normal mode delete operator.
 | `require('rgflow').qf_delete_line`    | Delete a line from QuickFix.
 | `require('rgflow').qf_delete_visual`  | QuickFix visual mode delete operator.

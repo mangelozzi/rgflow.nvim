@@ -95,6 +95,9 @@ M.print_cmd = function()
     return print(M.get_cmd())
 end
 
+-- After a :Cfilter, tell rgflow to update the pattern hilights
+M.qf_apply_hl = quickfix.apply_pattern_highlights
+
 M.qf_delete = function()
     quickfix.delete_operator(vim.fn.mode())
 end

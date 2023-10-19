@@ -10,6 +10,8 @@ local modes = require("rgflow.modes")
 
 local MIN_PRINT_TIME = 0.5 -- A float in seconds
 
+local std_out_buffer = nil
+
 --- The stderr handler for the spawned job
 -- @param err and data - Refer to module doc string at top of this file.
 local function on_stderr(err, data)
@@ -48,6 +50,20 @@ local function on_stdout(err, data)
     end
     if data then
         local vals = vim.split(data, "\n")
+        if std_out_buffer and vals then
+            vals[1] = std_out_buffer .. vals[1]
+            std_out_buffer = nil
+        end
+        local complete_output = data:sub(-1) == "\n"
+        if not complete_output then
+            -- pop off the last incomplete string and store it
+            local last_bit = table.remove(vals)
+            if std_out_buffer then
+                std_out_buffer = std_out_buffer .. last_bit
+            else
+                std_out_buffer = last_bit
+            end
+        end
         for _, d in pairs(vals) do
             -- If the last char is a ASCII 13 / ^M / <CR> then trim it
             if string.sub(d, -1, -1) == "\13" then
