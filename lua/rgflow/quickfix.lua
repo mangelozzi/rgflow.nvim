@@ -109,7 +109,7 @@ local function set_and_apply_pattern_highlights(start_idx, end_idx)
 end
 
 -- Mark groups with RgFlowInputPattern for when search terms highlight goes away
-local function apply_pattern_highlights()
+function M.apply_pattern_highlights()
     local STATE = get_state()
     clear_pattern_highlights(STATE)
     local items = vim.fn.getqflist({items = true}).items
@@ -149,7 +149,7 @@ function M.delete_operator(mode)
     STATE.found_cnt = STATE.found_cnt - count
     -- Don't create a new qf list, so use 'r'. Applies to colder/cnewer etc.
     vim.fn.setqflist({}, "r", {title = M.calc_qf_title(STATE, #qf_list), items = qf_list})
-    apply_pattern_highlights()
+    M.apply_pattern_highlights()
     -- When deleting a visual set of lines, it's more intuitive to jump to the
     -- start of where the lines were deleted, rather then the current line place
     -- I.e. say you delete from line 4 to 6, now on line 6 you have to new lines
@@ -202,7 +202,7 @@ function M.mark_operator(add_not_remove, mode)
     end
     -- Don't create a new qf list, so use 'r'. Applies to colder/cnewer etc.
     vim.fn.setqflist({}, "r", {title = M.calc_qf_title(STATE, #qf_list), items = qf_list})
-    apply_pattern_highlights()
+    M.apply_pattern_highlights()
     vim.fn.winrestview(win_pos)
 end
 
@@ -262,7 +262,6 @@ function M.populate()
     end
 
     set_and_apply_pattern_highlights(start_idx, end_idx)
-    -- apply_pattern_highlights()
 
     if #STATE.found_que > 0 then
         -- If the list of found matches
