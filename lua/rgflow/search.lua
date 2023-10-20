@@ -3,6 +3,7 @@ local uv = vim.loop
 local quickfix = require("rgflow.quickfix")
 local get_state = require("rgflow.state").get_state
 local set_state_searching = require("rgflow.state").set_state_searching
+local utils = require("rgflow.utils")
 local settings = require("rgflow.settingslib")
 local get_settings = settings.get_settings
 local messages = require("rgflow.messages")
@@ -65,12 +66,9 @@ local function on_stdout(err, data)
             end
         end
         for _, d in pairs(vals) do
-            -- If the last char is a ASCII 13 / ^M / <CR> then trim it
-            if string.sub(d, -1, -1) == "\13" then
-                d = string.sub(d, 1, -2)
-            end
-            if d ~= "" then
-                table.insert(STATE.found_que, d)
+            local line = utils.trim_whitespace(d)
+            if line ~= "" then
+                table.insert(STATE.found_que, line)
                 STATE.found_cnt = STATE.found_cnt + 1
             end
         end

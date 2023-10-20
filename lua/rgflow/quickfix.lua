@@ -109,7 +109,7 @@ local function set_and_apply_pattern_highlights(start_idx, end_idx)
 end
 
 -- Mark groups with RgFlowInputPattern for when search terms highlight goes away
-function M.apply_pattern_highlights()
+local function apply_pattern_highlights_actual()
     local STATE = get_state()
     clear_pattern_highlights(STATE)
     local items = vim.fn.getqflist({items = true}).items
@@ -117,6 +117,12 @@ function M.apply_pattern_highlights()
         if item.user_data then
             apply_line_hl(STATE, i, item.user_data.hl_start, item.user_data.hl_end)
         end
+    end
+end
+function M.apply_pattern_highlights()
+    local success, errorMessage = pcall(apply_pattern_highlights_actual)
+    if not success then
+        print("Function call apply_pattern_highlights failed with error: " .. errorMessage)
     end
 end
 
@@ -261,7 +267,12 @@ function M.populate()
         messages.set_status_msg(STATE, {history = true, print = true})
     end
 
-    set_and_apply_pattern_highlights(start_idx, end_idx)
+    local success, errorMessage = pcall(function()
+        set_and_apply_pattern_highlights(start_idx, end_idx)
+    end)
+    if not success then
+        print("Function call set_and_apply_pattern_highlights failed with error: " .. errorMessage)
+    end
 
     if #STATE.found_que > 0 then
         -- If the list of found matches

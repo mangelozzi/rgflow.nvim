@@ -2,8 +2,9 @@ local M = {}
 local api = vim.api
 
 function M.trim_whitespace(s)
+    -- Remove \n and \r aswell
     if s then
-        return s:gsub("^%s*(.-)%s*$", "%1")
+        return s:gsub("^[\r\n%s]*(.-)[\r\n%s]*$", "%1")
     else
         return ''
     end
