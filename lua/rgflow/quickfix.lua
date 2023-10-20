@@ -18,9 +18,17 @@ function M.calc_qf_title(STATE, qf_count)
     return messages.calc_status_msg(STATE, qf_count)
 end
 
+local function get_qf_buffer_nr()
+    return vim.fn.getqflist({qfbufnr = true}).qfbufnr
+end
+
+local function get_qf_buffer_cnt()
+    return vim.api.nvim_buf_line_count(get_qf_buffer_nr())
+end
+
 local function get_qf_buffer_lines(start_idx, end_idx)
     -- dont iterate getqflist entries because they dont return the filename, which is before each entry
-    local qf_buf_nr = vim.fn.getqflist({qfbufnr = true}).qfbufnr
+    local qf_buf_nr = get_qf_buffer_nr()
     local lines = vim.api.nvim_buf_get_lines(qf_buf_nr, start_idx - 1, end_idx, true)
     return lines
 end
@@ -50,7 +58,8 @@ local function correct_info(info, match_cnt)
     local start_idx = info.col - (ZS_ZE_LEN * match_cnt * 2)
     local end_idx = end_pos - (ZS_ZE_LEN * (match_cnt + 1) * 2)
     info.col = start_idx
-    info.end_col = end_idx
+    -- We don't set info.end_col cause then the result in the QF windows is hard to read with the end column number (staggers results a lot)
+    info.user_data = {end_col = end_idx }
     info.text2 = info.text
     info.text = info.text:gsub(zs_ze, "")
 end
@@ -86,6 +95,15 @@ end
 local function set_and_apply_pattern_highlights(start_idx, end_idx)
     local STATE = get_state()
     local items = vim.fn.getqflist({items = true}).items
+
+    local qf_buffer_cnt = get_qf_buffer_cnt()
+    if end_idx > qf_buffer_cnt then
+        print(
+            "end_idx out of range in set_and_apply_pattern_highlights, end_idx: " ..
+                end_idx .. ", and QF Buffer count: " .. qf_buffer_cnt
+        )
+        end_idx = qf_buffer_cnt
+    end
     local buffer_lines = get_qf_buffer_lines(start_idx, end_idx)
 
     start_idx = start_idx or 1
@@ -95,13 +113,17 @@ local function set_and_apply_pattern_highlights(start_idx, end_idx)
         -- buffer_lines is only about the chunk size, where iten_nr is the full range of qf list
         local line = buffer_lines[item_nr - start_idx + 1]
         local text_start_idx = #line - #item.text
-        if item.end_col then
+        if item.user_data and item.user_data.end_col then
             -- might not be a match due to truncation of line
+            local end_col = item.user_data.end_col
             item.user_data = {
                 hl_start = text_start_idx + item.col - 1,
-                hl_end = text_start_idx + item.end_col
+                hl_end = text_start_idx + end_col
             }
-            apply_line_hl(STATE, item_nr, item.user_data.hl_start, item.user_data.hl_end)
+            local success, error = apply_line_hl(STATE, item_nr, item.user_data.hl_start, item.user_data.hl_end)
+            if (error) then
+                print(error, item_nr)
+            end
         end
     end
     -- Save the user data to the QF List
@@ -109,7 +131,7 @@ local function set_and_apply_pattern_highlights(start_idx, end_idx)
 end
 
 -- Mark groups with RgFlowInputPattern for when search terms highlight goes away
-local function apply_pattern_highlights_actual()
+function M.apply_pattern_highlights()
     local STATE = get_state()
     clear_pattern_highlights(STATE)
     local items = vim.fn.getqflist({items = true}).items
@@ -117,12 +139,6 @@ local function apply_pattern_highlights_actual()
         if item.user_data then
             apply_line_hl(STATE, i, item.user_data.hl_start, item.user_data.hl_end)
         end
-    end
-end
-function M.apply_pattern_highlights()
-    local success, errorMessage = pcall(apply_pattern_highlights_actual)
-    if not success then
-        print("Function call apply_pattern_highlights failed with error: " .. errorMessage)
     end
 end
 
@@ -267,12 +283,7 @@ function M.populate()
         messages.set_status_msg(STATE, {history = true, print = true})
     end
 
-    local success, errorMessage = pcall(function()
-        set_and_apply_pattern_highlights(start_idx, end_idx)
-    end)
-    if not success then
-        print("Function call set_and_apply_pattern_highlights failed with error: " .. errorMessage)
-    end
+    set_and_apply_pattern_highlights(start_idx, end_idx)
 
     if #STATE.found_que > 0 then
         -- If the list of found matches

@@ -50,7 +50,7 @@ local function on_stdout(err, data)
         )
     end
     if data then
-        local vals = vim.split(data, "\n")
+        local vals = vim.split(data, "\n", true)
         if std_out_buffer and vals then
             vals[1] = std_out_buffer .. vals[1]
             std_out_buffer = nil
