@@ -11,7 +11,11 @@ local set_state_adding = require("rgflow.state").set_state_adding
 local messages = require("rgflow.messages")
 local modes = require("rgflow.modes")
 
-local QF_PATTERN = "^([^:]+):(%d+):(%d+):(.-)$"
+-- Example in Linux: foo/bar/baz.js:19:11:    - `{% foo 'data-form="office prefix' %}`
+local LINUX_QF_PATTERN = "^([^:]+):(%d+):(%d+):(.-)$"
+-- Example in Windows: C:\Users\Michael\foo\bar\baz.js:1:261003:[Omitted long line with 43 matches]
+local WIN_QF_PATTERN = "^(.:[^:]+):(%d+):(%d+):(.-)$"
+
 local ZS_ZE_LEN = #zs_ze
 
 function M.calc_qf_title(STATE, qf_count)
@@ -34,7 +38,11 @@ local function get_qf_buffer_lines(start_idx, end_idx)
 end
 
 local function extractQfInfo(line)
-    local filename, lnum, col, text = line:match(QF_PATTERN)
+    local pattern = LINUX_QF_PATTERN
+    if line:sub(2, 2) == ":" then
+        pattern = WIN_QF_PATTERN
+    end
+    local filename, lnum, col, text = line:match(pattern)
     return {
         filename = filename,
         lnum = tonumber(lnum),
