@@ -67,7 +67,7 @@ local function correct_info(info, match_cnt)
     local end_idx = end_pos - (ZS_ZE_LEN * (match_cnt + 1) * 2)
     info.col = start_idx
     -- We don't set info.end_col cause then the result in the QF windows is hard to read with the end column number (staggers results a lot)
-    info.user_data = {end_col = end_idx }
+    info.user_data = {end_col = end_idx}
     info.text2 = info.text
     info.text = info.text:gsub(zs_ze, "")
 end
@@ -75,14 +75,16 @@ end
 local function parseQfLines(buffer)
     local ret = {}
     local match_cnt = 0
-    local previous_line = nil
+    local previous_file = nil
+    local previous_lnum = nil
     for _, line in ipairs(buffer) do
         local info = extractQfInfo(line)
-        if info.text == previous_line then
+        if previous_lnum == info.lnum and previous_file == info.filename then
             match_cnt = match_cnt + 1
         else
             match_cnt = 0
-            previous_line = info.text
+            previous_file = info.filename
+            previous_lnum = info.lnum
         end
         correct_info(info, match_cnt)
         table.insert(ret, info)
@@ -95,8 +97,15 @@ local function clear_pattern_highlights(STATE)
     vim.api.nvim_buf_clear_namespace(qf_buf_nr, STATE.highlight_namespace_id, 0, -1)
 end
 
-local function apply_line_hl(STATE, lnum, start_col, end_col)
-    vim.api.nvim_buf_add_highlight(0, STATE.highlight_namespace_id, "RgFlowQfPattern", lnum - 1, start_col, end_col)
+local function apply_line_hl(buf_nr, STATE, lnum, start_col, end_col)
+    vim.api.nvim_buf_add_highlight(
+        buf_nr,
+        STATE.highlight_namespace_id,
+        "RgFlowQfPattern",
+        lnum - 1,
+        start_col,
+        end_col
+    )
 end
 
 -- Mark groups with RgFlowInputPattern for when search terms highlight goes away
@@ -116,6 +125,7 @@ local function set_and_apply_pattern_highlights(start_idx, end_idx)
 
     start_idx = start_idx or 1
     end_idx = end_idx or #items
+    local qf_buf_nr = get_qf_buffer_nr()
     for item_nr = start_idx, end_idx do
         local item = items[item_nr]
         -- buffer_lines is only about the chunk size, where iten_nr is the full range of qf list
@@ -128,9 +138,10 @@ local function set_and_apply_pattern_highlights(start_idx, end_idx)
                 hl_start = text_start_idx + item.col - 1,
                 hl_end = text_start_idx + end_col
             }
-            local success, error = apply_line_hl(STATE, item_nr, item.user_data.hl_start, item.user_data.hl_end)
+            local success, error =
+                pcall(apply_line_hl, qf_buf_nr, STATE, item_nr, item.user_data.hl_start, item.user_data.hl_end)
             if (error) then
-                print(error, item_nr)
+                print_error(error)
             end
         end
     end

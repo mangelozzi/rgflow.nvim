@@ -100,4 +100,18 @@ function M.get_qf_size()
     return vim.fn.getqflist({size = true}).size
 end
 
+
+-- Used for debugging
+-- Function to get a specific line from a buffer in Neovim
+-- function M.get_line_from_buffer(buf_nr, line_number)
+--     -- Get the buffer handle using bufnr() function
+--     local buf = vim.api.nvim_buf_get_lines(buf_nr, line_number - 1, line_number, false)
+--     -- Check if the buffer contains the specified line
+--     if buf and #buf > 0 then
+--         return buf[1]
+--     else
+--         return nil
+--     end
+-- end
+
 return M
