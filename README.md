@@ -232,7 +232,7 @@ require("rgflow").setup(
     - Although it comes with Neovim, it must first be enabled with: `vim.cmd('packadd cfilter')`
     - `:Cfilter foo` will limit your QuickFix results to only those that contain the phrase `foo`
     - `:Cfilter! foo` does the inverse, only those that **don't** contain `foo` are kept.
-- By using `Cfilter` and this plugin's delete function, you can quickly message your QuickFix list, making it ready to unleash a `:cdo` and `:cfdo` ... unlocking all sorts of super powers.
+- By using `Cfilter` and this plugin's delete function, you can quickly massage your QuickFix list, making it ready to unleash a `:cdo` and `:cfdo` ... unlocking all sorts of super powers.
     - e.g. To substitute the word `foo` for `bar` on each QuickFix match then save the modified file:
         - `:cdo s/foo/bar/ | update`
 
