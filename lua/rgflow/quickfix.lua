@@ -7,7 +7,6 @@ local utils = require("rgflow.utils")
 local get_settings = require("rgflow.settingslib").get_settings
 local zs_ze = require("rgflow.settingslib").zs_ze
 local get_state = require("rgflow.state").get_state
-local set_state_adding = require("rgflow.state").set_state_adding
 local messages = require("rgflow.messages")
 local modes = require("rgflow.modes")
 
@@ -97,9 +96,10 @@ local function clear_pattern_highlights(STATE)
     vim.api.nvim_buf_clear_namespace(qf_buf_nr, STATE.highlight_namespace_id, 0, -1)
 end
 
-local function apply_line_hl(buf_nr, STATE, lnum, start_col, end_col)
+local function apply_line_hl(STATE, lnum, start_col, end_col)
+    local qf_buf_nr = get_qf_buffer_nr()
     vim.api.nvim_buf_add_highlight(
-        buf_nr,
+        qf_buf_nr,
         STATE.highlight_namespace_id,
         "RgFlowQfPattern",
         lnum - 1,
@@ -125,7 +125,6 @@ local function set_and_apply_pattern_highlights(start_idx, end_idx)
 
     start_idx = start_idx or 1
     end_idx = end_idx or #items
-    local qf_buf_nr = get_qf_buffer_nr()
     for item_nr = start_idx, end_idx do
         local item = items[item_nr]
         -- buffer_lines is only about the chunk size, where iten_nr is the full range of qf list
@@ -139,7 +138,7 @@ local function set_and_apply_pattern_highlights(start_idx, end_idx)
                 hl_end = text_start_idx + end_col
             }
             local success, error =
-                pcall(apply_line_hl, qf_buf_nr, STATE, item_nr, item.user_data.hl_start, item.user_data.hl_end)
+                pcall(apply_line_hl, STATE, item_nr, item.user_data.hl_start, item.user_data.hl_end)
             if (error) then
                 print_error(error)
             end
@@ -185,7 +184,6 @@ function M.delete_operator(mode)
     local qf_list = vim.fn.getqflist()
     for _ = 1, count, 1 do
         table.remove(qf_list, startl)
-        table.remove(STATE.hl_positions, startl)
     end
     STATE.found_cnt = STATE.found_cnt - count
     -- Don't create a new qf list, so use 'r'. Applies to colder/cnewer etc.
@@ -223,21 +221,17 @@ function M.mark_operator(add_not_remove, mode)
     if add_not_remove then
         for i = startl, endl, 1 do
             qf_list[i]["text"] = string.gsub(qf_list[i]["text"], "^(%s*)", "%1" .. mark, 1)
-            for _, position in ipairs(STATE.hl_positions[i]) do
-                position["zs"] = position["zs"] + offset
-                position["ze"] = position["ze"] + offset
-            end
+            qf_list[i].user_data.hl_start = qf_list[i].user_data.hl_start + offset
+            qf_list[i].user_data.hl_end = qf_list[i].user_data.hl_end + offset
         end
     else
         for i = startl, endl, 1 do
-            local before_change = qf_list[i]["text"]
-            qf_list[i]["text"] = string.gsub(qf_list[i]["text"], "^(%s*)" .. mark, "%1", 1)
-            if before_change ~= qf_list[i]["text"] then
-                -- If you try unmark beyond zero, dont keep shifting the highlighting
-                for _, position in ipairs(STATE.hl_positions[i]) do
-                    position["zs"] = position["zs"] - offset
-                    position["ze"] = position["ze"] - offset
-                end
+            local before_text = qf_list[i]["text"]
+            if string.find(before_text, mark) then
+                -- Don't allow to go before the start of the line
+                qf_list[i]["text"] = string.gsub(qf_list[i]["text"], "^(%s*)" .. mark, "%1", 1)
+                qf_list[i].user_data.hl_start = qf_list[i].user_data.hl_start - offset
+                qf_list[i].user_data.hl_end = qf_list[i].user_data.hl_end - offset
             end
         end
     end
@@ -312,7 +306,6 @@ function M.populate()
 end
 
 function M.setup_adding(STATE)
-    set_state_adding()
     clear_pattern_highlights(STATE)
     local create_qf_options = {title = M.calc_qf_title(STATE, 0), pattern = STATE.pattern}
     if get_settings().quickfix.new_list_always_appended then
