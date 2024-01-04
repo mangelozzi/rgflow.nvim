@@ -172,6 +172,7 @@ function M.open(pattern, flags, path, options)
 end
 
 function M.start()
+    local STATE = get_state()
     if vim.fn.pumvisible() ~= 0 then
         -- If the autocomplete pop up menu is shown, select current
         -- autocompletion match instead of starting
@@ -186,7 +187,7 @@ function M.start()
     local bufi = get_state().bufi
     local flags, pattern, path = unpack(api.nvim_buf_get_lines(bufi, 0, 3, true))
 
-    if pattern == "" then
+    if pattern == "" and not STATE.custom_start then
         --- Prints a @msg to the command line with error highlighting.
         -- Does not raise an error (like echoerr does)
         vim.api.nvim_echo({{"PATTERN must not be blank.", "ErrorMsg"}}, false, {})
@@ -202,7 +203,7 @@ function M.start()
     api.nvim_win_close(get_state().wini, true)
     -- api.nvim_win_close(M.winh, true)
 
-    local run_func = get_state().custom_start or search.run
+    local run_func = STATE.custom_start or search.run
     run_func(pattern, flags, path)
 end
 
