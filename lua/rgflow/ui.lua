@@ -125,7 +125,7 @@ function M.show_ui(pattern, flags, path)
     -- heading, it will not be highlighted.
     vim.fn.matchaddpos("RgFlowHead", {2, 3, 4}, 11, -1, {window = STATE.winh})
     vim.fn.matchaddpos("RgFlowInputBg", {{2, widthh}, {3, widthh}, {4, widthh}}, 12, -1, {window = STATE.winh})
-    -- IF someone person ended up on the heading buffer, if <ESC> is pressed, abort the search
+    -- If someone person ended up on the heading buffer, if <ESC> is pressed, abort the search
     -- Note the keymaps for the input dialogue are set in the filetype plugin
     api.nvim_buf_set_keymap(STATE.bufh, "n", "<ESC>", "<cmd>lua rgflow.abort_start()<CR>", {noremap = true})
 
@@ -147,8 +147,11 @@ local function set_patttern_if_blank(new_pattern)
     return false
 end
 
-function M.open(pattern, flags, path)
+function M.open(pattern, flags, path, options)
+    options = options or {}
     local STATE = get_state()
+    STATE.custom_start = options.custom_start
+
     pattern = utils.trim_whitespace(pattern or '')
     if STATE.mode == modes.OPEN and vim.api.nvim_win_is_valid(STATE.wini) then
         local updated = set_patttern_if_blank(pattern)
@@ -198,7 +201,9 @@ function M.start()
     -- see `api.nvim_command('au BufWipeout <buffer> exe "silent bwipeout! '..bufh..'"')` above
     api.nvim_win_close(get_state().wini, true)
     -- api.nvim_win_close(M.winh, true)
-    search.run(pattern, flags, path)
+
+    local run_func = get_state().custom_start or search.run
+    run_func(pattern, flags, path)
 end
 
 --- Closes the input dialogue

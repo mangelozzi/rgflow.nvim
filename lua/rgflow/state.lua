@@ -22,6 +22,7 @@ local STATE = {
     highlight_namespace_id = vim.api.nvim_create_namespace("rgflow.nvim"),
     ui_autocmd_group = vim.api.nvim_create_augroup("RgFlowUiGroup", {clear = true}),
     applied_settings = {},
+    custom_start = nil, -- Instead of calling built in function `start`, call a user provided custom function with the pattern/flags/path
 }
 
 M.get_state = function()

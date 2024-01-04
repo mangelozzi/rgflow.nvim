@@ -200,7 +200,7 @@ require("rgflow").setup(
 |---------------------------------------|--------------------------------------------------------|
 | `require('rgflow').setup(config)`     | Setup the plugin with the provided config settings
 | `require('rgflow').open`              | Opens the UI with default arguments.<br>**Pattern** = blank<br>**Flags** = previous flags (or `cmd_flags` after startup)<br>**Path** = PWD
-| `require('rgflow').open(pattern, flags, path)` | Open UI with specified args<br>e.g. `require('rgflow').open('foo', '--smart-case --ignore', '~/code/my_project')`
+| `require('rgflow').open(pattern, flags, path, options)` | Open UI with specified args<br>e.g. `require('rgflow').open('foo', '--smart-case --ignore', '~/code/my_project')`<br>Refer to section `Open Options` below for more detail.
 | `require('rgflow').open_blank`        | Open UI with blank search pattern (insert mode).
 | `require('rgflow').open_cword`        | Open UI with current word as the search pattern.
 | `require('rgflow').open_again`        | Open UI with previous search pattern.
@@ -224,6 +224,25 @@ require("rgflow").setup(
 | `require('rgflow').qf_unmark_visual`  | QuickFix visual mode unmark operator.
 | `require('rgflow').auto_complete`     | Auto complete based on input box context.
 | `require('rgflow').print_status`      | Print info about the current state of rgflow.
+
+### Open Options
+
+- The open function signature looks like this:
+    - `require('rgflow').open(pattern, flags, path, options)`
+- The `options` parameter is a lua table with the following keys (for now only one key):
+    - `custom_start` 
+        - Useful for using Rgflow's UI to gather the search info, then call one's own tool.
+        - The parameter is a function that receives the pattern/flags/path (3 x strings) from UI, and performs it's own custom function, e.g. within a keymap:
+        ```lua
+        vim.keymap.set("n", "<leader>RG", function()
+            -- Here we open UI with the default pattern/flags/path by passing in nil, nil, nil
+            require('rgflow').open(nil, nil, nil, {
+                custom_start = function(pattern, flags, path)
+                    print('Pattern:'..pattern..' Flags:'..flags..' Path:'..path)
+                end
+            })
+        end, {noremap = true})
+        ```
 
 ## Bonus Tips
 
