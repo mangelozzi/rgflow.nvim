@@ -30,13 +30,15 @@ return {
         trigger = {
             -- Normal mode maps
             n = {
-                ["<leader>rG"] = "open_blank", -- Open UI - search pattern = blank
-                ["<leader>rg"] = "open_cword", -- Open UI - search pattern = <cword>
-                ["<leader>rp"] = "open_paste", -- Open UI - search pattern = First line of unnamed register as the search pattern
-                ["<leader>ra"] = "open_again", -- Open UI - search pattern = Previous search pattern
-                ["<leader>rx"] = "abort",      -- Close UI / abort searching / abortadding results
-                ["<leader>rc"] = "print_cmd",  -- Print a version of last run rip grep that can be pasted into a shell
-                ["<leader>r?"] = "print_status",  -- Print info about the current state of rgflow (mostly useful for deving on rgflow) 
+                ["<leader>rG"] = "open_blank",      -- Open UI - search pattern = blank
+                ["<leader>rp"] = "open_paste",      -- Open UI - search pattern = First line of unnamed register as the search pattern
+                ["<leader>rg"] = "open_cword",      -- Open UI - search pattern = <cword>
+                ["<leader>rw"] = "open_cword_path", -- Open UI - search pattern = <cword> and path = current file's directory
+                ["<leader>rs"] = "search",          -- Run a search with the current parameters
+                ["<leader>ra"] = "open_again",      -- Open UI - search pattern = Previous search pattern
+                ["<leader>rx"] = "abort",           -- Close UI / abort searching / abortadding results
+                ["<leader>rc"] = "print_cmd",       -- Print a version of last run rip grep that can be pasted into a shell
+                ["<leader>r?"] = "print_status",    -- Print info about the current state of rgflow (mostly useful for deving on rgflow)
             },
             -- Visual/select mode maps
             x = {

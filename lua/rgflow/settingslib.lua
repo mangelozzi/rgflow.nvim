@@ -14,8 +14,9 @@ M.RgFlowAutoCmdGroup = vim.api.nvim_create_augroup("RgFlowAutoCmdGroup", {clear 
 local func_name_to_keymap_opts = {
     open_again       = { noremap = true, silent = true, desc = "open previous" },
     open_blank       = { noremap = true, silent = true, desc = "open blank" },
-    open_cword       = { noremap = true, silent = true, desc = "open <cword>" },
     open_paste       = { noremap = true, silent = true, desc = "open unnamed" },
+    open_cword       = { noremap = true, silent = true, desc = "open <cword>" },
+    open_cword_path  = { noremap = true, silent = true, desc = "open <cword> path=%:h" },
     open_visual      = { noremap = true, silent = true, desc = "open visual" },
     abort            = { noremap = true, silent = true, desc = "abort" },
     print_cmd        = { noremap = true, silent = true, desc = "print command" },
