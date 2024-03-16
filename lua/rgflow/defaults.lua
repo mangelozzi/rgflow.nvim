@@ -47,16 +47,18 @@ return {
         ui = {
             -- Normal mode maps
             n = {
-                ["<CR>"]  = "start", -- With the ui open, start a search with the current parameters
-                ["<ESC>"] = "close", -- With the ui open, discard and close the UI window
-                ["?"]     = "show_rg_help", -- Show the rg help in a floating window, which can be closed with q or <ESC> or the usual <C-W><C-C>
-                ["<BS>"]  = "nop",   -- No operation
-                ["<C-^>"] = "nop",   -- No operation
-                ["<C-6>"] = "nop",   -- No operation
+                ["<CR>"]  = "start",         -- With the ui open, start a search with the current parameters
+                ["<ESC>"] = "close",         -- With the ui open, discard and close the UI window
+                ["?"]     = "show_rg_help",  -- Show the rg help in a floating window, which can be closed with q or <ESC> or the usual <C-W><C-C>
+                ["<BS>"]  = "parent_path",   -- Change the path to parent directory
+                ["<C-^>"] = "edit_alt_file", -- Switch to the alternate file
+                ["<C-6>"] = "edit_alt_file", -- Switch to the alternate file
+                ["<C-^>"] = "nop",           -- No operation
+                ["<C-6>"] = "nop",           -- No operation
             },
             -- Insert mode maps
             i = {
-                ["<CR>"]  = "start", -- With the ui open, start a search with the current parameters (from insert mode)
+                ["<CR>"]  = "start",         -- With the ui open, start a search with the current parameters (from insert mode)
                 ["<TAB>"] = "auto_complete", -- Start autocomplete if PUM not visible, if visible use own hotkeys to select an option
                 ["<C-N>"] = "auto_complete", -- Start autocomplete if PUM not visible, if visible use own hotkeys to select an option
                 ["<C-P>"] = "auto_complete", -- Start autocomplete if PUM not visible, if visible use own hotkeys to select an option
