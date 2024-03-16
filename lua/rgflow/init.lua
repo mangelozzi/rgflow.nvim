@@ -26,6 +26,13 @@ M.open_cword = function()
     ui.open(vim.fn.expand("<cword>"))
 end
 
+-- open UI - search pattern = <cword> and path = current file's directory
+M.open_cword_path = function()
+    ui.open(vim.fn.expand("<cword>"),
+        require("rgflow.state").get_state().cmd_flags,
+        vim.fn.expand("%:p:h"))
+end
+
 -- open UI - search pattern = Previous search pattern that was executed
 M.open_again = function()
     ui.open(require("rgflow.state").get_state().pattern)
