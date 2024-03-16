@@ -214,6 +214,13 @@ function M.close()
     STATE.mode = modes.IDLE
 end
 
+function M.parent_path()
+    local STATE = get_state()
+    local cur_path = unpack(api.nvim_buf_get_lines(STATE.bufi, 2, 3, true))
+    local parent = vim.fn.fnamemodify(cur_path, ":h")
+    api.nvim_buf_set_lines(STATE.bufi, 2, 3, true, { parent })
+end
+
 -- Define a function to create a floating terminal buffer and run a command
 function M.show_rg_help()
     -- Get the current Neovim window dimensions

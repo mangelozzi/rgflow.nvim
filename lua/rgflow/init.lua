@@ -81,11 +81,13 @@ M.abort = function()
         print("Aborted searching.")
     elseif STATE.mode == modes.ADDING then
         STATE.mode = modes.ABORTING
-    -- Handed in quickfix.lua
+        -- Handed in quickfix.lua
     end
 end
 
 M.show_rg_help = ui.show_rg_help
+
+M.parent_path = ui.parent_path
 
 -- No operation
 M.nop = function()
