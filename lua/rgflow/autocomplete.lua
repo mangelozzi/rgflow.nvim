@@ -5,7 +5,7 @@ local RG_HELP_DATA = nil
 local function remove_header(lines)
     local index
     for i, line in ipairs(lines) do
-        if string.match(line, "^OPTIONS%:") ~= nil then
+        if string.match(line, ".*OPTIONS:$") ~= nil then
             index = i
             break -- Exit the loop once the header is found and removed
         end
@@ -87,9 +87,11 @@ local function get_rg_help_data()
         local desc = trim(line)
 
         if abbr_flag then
-            table.insert(data, {word = abbr_flag, menu = desc})
+            table.insert(data, { word = abbr_flag, menu = desc })
         end
-        table.insert(data, {word = long_flag, menu = desc})
+        if long_flag then
+            table.insert(data, { word = long_flag, menu = desc })
+        end
     end
     RG_HELP_DATA = data
     return RG_HELP_DATA
