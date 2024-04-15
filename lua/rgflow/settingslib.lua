@@ -24,6 +24,7 @@ local func_name_to_keymap_opts = {
     start            = { noremap = true, silent = true, buffer = true, desc = "start" },
     close            = { noremap = true, silent = true, buffer = true, desc = "close" },
     show_rg_help     = { noremap = true, silent = true, buffer = true, desc = "help" },
+    parent_path      = { noremap = true, silent = true, buffer = true, desc = "parent path" },
     nop              = { noremap = true, silent = true, buffer = true, desc = "nop" },
 
     qf_delete        = { noremap = true, silent = true, buffer = true, desc = "QF del" },
