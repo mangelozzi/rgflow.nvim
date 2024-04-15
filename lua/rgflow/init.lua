@@ -81,7 +81,7 @@ M.abort = function()
         print("Aborted searching.")
     elseif STATE.mode == modes.ADDING then
         STATE.mode = modes.ABORTING
-        -- Handed in quickfix.lua
+        -- Handled in quickfix.lua
     end
 end
 

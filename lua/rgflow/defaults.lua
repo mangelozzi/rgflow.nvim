@@ -53,6 +53,7 @@ return {
                 ["<ESC>"] = "close",         -- With the ui open, discard and close the UI window
                 ["?"]     = "show_rg_help",  -- Show the rg help in a floating window, which can be closed with q or <ESC> or the usual <C-W><C-C>
                 ["<BS>"]  = "parent_path",   -- Change the path to parent directory
+                ["-"]     = "parent_path",   -- Change the path to parent directory
                 ["<C-^>"] = "edit_alt_file", -- Switch to the alternate file
                 ["<C-6>"] = "edit_alt_file", -- Switch to the alternate file
                 ["<C-^>"] = "nop",           -- No operation

@@ -38,6 +38,7 @@ require('rgflow').setup(
 ```
 5. After restarting Neovim, press `<leader>rg` to open the RgFlow UI
 6. Type in a search pattern and press `<ENTER>`
+    - Note: `<BS>` (Backspace) or `-` will go up a dir
 7. A search will run and populate the QuickFix window
 8. Press `dd` to delete a QuickFix entry, or select a visual range and press `d`
 9. Press `TAB` to mark a line and `<S-TAB>` to unmark a line, a line can be marked more than once
@@ -108,35 +109,41 @@ And then `:PackerSync` etc. to install it.
         trigger = {
             -- Normal mode maps
             n = {
-                ["<leader>rG"] = "open_blank", -- open UI - search pattern = blank
-                ["<leader>rg"] = "open_cword", -- open UI - search pattern = <cword>
-                ["<leader>rp"] = "open_paste", -- open UI - search pattern = First line of unnamed register as the search pattern
-                ["<leader>ra"] = "open_again", -- open UI - search pattern = Previous search pattern
-                ["<leader>rx"] = "abort",      -- close UI / abort searching / abortadding results
-                ["<leader>rc"] = "print_cmd",  -- Print a version of last run rip grep that can be pasted into a shell
-                ["<leader>r?"] = "print_status",  -- Print info about the current state of rgflow (mostly useful for deving on rgflow) 
+                ["<leader>rG"] = "open_blank",      -- Open UI - search pattern = blank
+                ["<leader>rp"] = "open_paste",      -- Open UI - search pattern = First line of unnamed register as the search pattern
+                ["<leader>rg"] = "open_cword",      -- Open UI - search pattern = <cword>
+                ["<leader>rw"] = "open_cword_path", -- Open UI - search pattern = <cword> and path = current file's directory
+                ["<leader>rs"] = "search",          -- Run a search with the current parameters
+                ["<leader>ra"] = "open_again",      -- Open UI - search pattern = Previous search pattern
+                ["<leader>rx"] = "abort",           -- Close UI / abort searching / abortadding results
+                ["<leader>rc"] = "print_cmd",       -- Print a version of last run rip grep that can be pasted into a shell
+                ["<leader>r?"] = "print_status",    -- Print info about the current state of rgflow (mostly useful for deving on rgflow)
             },
             -- Visual/select mode maps
             x = {
-                ["<leader>rg"] = "open_visual", -- open UI - search pattern = current visual selection
+                ["<leader>rg"] = "open_visual", -- Open UI - search pattern = current visual selection
             },
         },
         -- Mappings that are local only to the RgFlow UI
         ui = {
             -- Normal mode maps
             n = {
-                ["<CR>"]  = "start", -- With the ui open, start a search with the current parameters
-                ["<ESC>"] = "close", -- With the ui open, discard and close the UI window
-                ["?"]     = "show_rg_help", -- Show the rg help in a floating window, which can be closed with q or <ESC> or the usual <C-W><C-C>
-                ["<BS>"]  = "nop",   -- No operation
-                ["<C-^>"] = "nop",   -- No operation
-                ["<C-6>"] = "nop",   -- No operation
+                ["<CR>"]  = "start",         -- With the ui open, start a search with the current parameters
+                ["<ESC>"] = "close",         -- With the ui open, discard and close the UI window
+                ["?"]     = "show_rg_help",  -- Show the rg help in a floating window, which can be closed with q or <ESC> or the usual <C-W><C-C>
+                ["<BS>"]  = "parent_path",   -- Change the path to parent directory
+                ["-"]     = "parent_path",   -- Change the path to parent directory
+                ["<C-^>"] = "edit_alt_file", -- Switch to the alternate file
+                ["<C-6>"] = "edit_alt_file", -- Switch to the alternate file
+                ["<C-^>"] = "nop",           -- No operation
+                ["<C-6>"] = "nop",           -- No operation
             },
-            -- Insert mode maps i = {
-                ["<CR>"]  = "start", -- With the ui open, start a search with the current parameters (from insert mode)
-                ["<TAB>"] = "auto_complete", -- start autocomplete if PUM not visible, if visible use own hotkeys to select an option
-                ["<C-N>"] = "auto_complete", -- start autocomplete if PUM not visible, if visible use own hotkeys to select an option
-                ["<C-P>"] = "auto_complete", -- start autocomplete if PUM not visible, if visible use own hotkeys to select an option
+            -- Insert mode maps
+            i = {
+                ["<CR>"]  = "start",         -- With the ui open, start a search with the current parameters (from insert mode)
+                ["<TAB>"] = "auto_complete", -- Start autocomplete if PUM not visible, if visible use own hotkeys to select an option
+                ["<C-N>"] = "auto_complete", -- Start autocomplete if PUM not visible, if visible use own hotkeys to select an option
+                ["<C-P>"] = "auto_complete", -- Start autocomplete if PUM not visible, if visible use own hotkeys to select an option
             },
         },
         -- Mapping that are local only to the QuickFix window
@@ -203,6 +210,7 @@ require("rgflow").setup(
 | `require('rgflow').open(pattern, flags, path, options)` | Open UI with specified args<br>e.g. `require('rgflow').open('foo', '--smart-case --ignore', '~/code/my_project')`<br>Refer to section `Open Options` below for more detail.
 | `require('rgflow').open_blank`        | Open UI with blank search pattern (insert mode).
 | `require('rgflow').open_cword`        | Open UI with current word as the search pattern.
+| `require('rgflow').open_cword_path`   | Open UI with current word as the search pattern, and path as the current file's directory.
 | `require('rgflow').open_again`        | Open UI with previous search pattern.
 | `require('rgflow').open_paste`        | Open UI with first line of unnamed register as pattern.
 | `require('rgflow').open_visual`       | Open UI with current visual selection as pattern.
