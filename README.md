@@ -172,6 +172,10 @@ And then `:PackerSync` etc. to install it.
 
 ### Full configuration options
 
+- The configuration covers
+    - Custom highlight colors (colour scheme)
+    - Key maps
+    - Various other preferences
 
 For the full list of configurable settings refer to [Default settings](https://github.com/mangelozzi/rgflow.nvim/blob/master/lua/rgflow/defaults.lua)
 
