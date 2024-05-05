@@ -127,16 +127,16 @@ return {
         --      RgFlowInputPattern = {link = "Title"}
         ---- UI
         -- Recommend not setting a BG so it uses the current lines BG
-        RgFlowHead          = nil, -- The header colors for FLAGS / PATTERN / PATH blocks
-        RgFlowHeadLine      = nil, -- The line along the top of the header
-        -- Even though just a background, add the foreground or else when
-        -- appending cant see the insert cursor
-        RgFlowInputBg       = nil, -- The Input lines
-        RgFlowInputFlags    = nil, -- The flag input line
-        RgFlowInputPattern  = nil, -- The pattern input line
-        RgFlowInputPath     = nil, -- The path input line
+        RgFlowHead          = nil, -- Default links to 'FloatFooter'. The header colors for FLAGS / PATTERN / PATH blocks
+        RgFlowHeadLine      = nil, -- Default links to 'FloatBorder'. The line along the top of the header
+        RgFlowInputBg       = nil, -- Default links to 'NormalFloat'. The Input lines
+                                   --   Even though just a background, add the foreground or else when
+                                   --   appending cant see the insert cursor
+        RgFlowInputFlags    = nil, -- Default links to 'NormalFloat'. The flag input line
+        RgFlowInputPattern  = nil, -- Default links to 'NormalTitle'. The pattern input line
+        RgFlowInputPath     = nil, -- Default links to 'NormalFloat'. The path input line
         ---- Quickfix
-        RgFlowQfPattern     = nil, -- The highlighting of the pattern in the quickfix results
+        RgFlowQfPattern     = nil, -- Default links to 'Number'. The highlighting of the pattern in the quickfix results
     },
 
     -- ui_top_line_char = "▄",

@@ -266,6 +266,8 @@ require("rgflow").setup(
 - By using `Cfilter` and this plugin's delete function, you can quickly massage your QuickFix list, making it ready to unleash a `:cdo` and `:cfdo` ... unlocking all sorts of super powers.
     - e.g. To substitute the word `foo` for `bar` on each QuickFix match then save the modified file:
         - `:cdo s/foo/bar/ | update`
+- Check out @towry-archived's integration with FZF-lua to use this plugin's UI to collect args for running a FZF search:
+    - <https://github.com/mangelozzi/rgflow.nvim/issues/10>
 
 ## Contributing
 

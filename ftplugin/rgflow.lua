@@ -7,6 +7,9 @@ local settingslib = require("rgflow.settingslib")
 local SETTINGS = settingslib.get_settings()
 local max_input_lines = 3
 
+-- Disable word wrapping for the input window, because the style is to have a single line for each input
+vim.opt_local.wrap = false
+
 -- Gobal variable so completefunc can be set to "v:lua.RGFLOW_FLAGS_COMPLETE"
 RGFLOW_FLAGS_COMPLETE = require("rgflow.autocomplete").rg_flags_complete
 vim.opt_local.omnifunc = "v:lua.RGFLOW_FLAGS_COMPLETE"

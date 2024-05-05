@@ -3,7 +3,6 @@
 local M = {}
 M.SETTINGS = {}
 local UI_GROUP = 0
-local colorlib = require("rgflow.colorlib")
 
 -- The start and end of pattern match invisible marker
 -- ASCII value 30, hex 1E. Enter it in vim by pressing <C-V> then 030
@@ -38,25 +37,28 @@ local func_name_to_keymap_opts = {
 }
 
 local function get_default_colors()
-    local is_ui_light = colorlib.get_is_normal_fg_bright()
-    local fg, bg = colorlib.get_default_colors()
-    -- local STATE = require('rgflow.state').get_state()
     return {
         -- Recommend not setting a BG so it uses the current lines BG
-        RgFlowQfPattern     = { bg=colorlib.get_group_bg(0, 'QuickFixLine'), fg=colorlib.get_matches_color(not is_ui_light), bold=true},
-        RgFlowHead          = { fg=fg, bg=bg},
-        RgFlowHeadLine      = { bg=bg, fg=colorlib.get_group_bg(0, 'StatusLine')},
+        RgFlowQfPattern     = { link='Number' },
+        RgFlowHead          = { link='FloatFooter' },
+        RgFlowHeadLine      = { link='FloatBorder' },
         -- Even though just a background, add the foreground or else when
         -- appending cant see the insert cursor
-        RgFlowInputBg       = { bg=fg, fg=bg},
-        RgFlowInputFlags    = { bg=fg, fg=bg},
-        RgFlowInputPattern  = { bg=fg, fg=colorlib.get_pattern_color(is_ui_light), bold=true},
-        RgFlowInputPath     = { bg=fg, fg=(is_ui_light and '#333333' or '#eeeeee')},
+        RgFlowInputBg       = { link='NormalFloat' },
+        RgFlowInputFlags    = { link='NormalFloat' },
+        RgFlowInputPattern  = { link='FloatTitle' },
+        RgFlowInputPath     = { link='NormalFloat' },
     }
 end
 
 local function apply_color_def(group_name, color_def)
     vim.api.nvim_set_hl(UI_GROUP, group_name, color_def)
+end
+
+local function get_hi_group_exists(ns_id, name)
+    local group_info = vim.api.nvim_get_hl(ns_id, {name = name})
+    -- next will return nil if an empty dict, else a value
+    return next(group_info)
 end
 
 local function setup_hi_groups(user_colors)
@@ -67,7 +69,7 @@ local function setup_hi_groups(user_colors)
             -- If user defines a color, always apply it
             apply_color_def(group_name, user_def)
         else
-            if not colorlib.get_hi_group_exists(UI_GROUP, group_name) then
+            if not get_hi_group_exists(UI_GROUP, group_name) then
                 apply_color_def(group_name, default_def)
             end
         end
@@ -111,6 +113,7 @@ local function apply_settings(settings)
 end
 
 local function create_sync_colors_autocmd()
+    -- Some color schemes unlink all colors, relink them each time
     vim.api.nvim_create_autocmd(
         "ColorScheme",
         {
