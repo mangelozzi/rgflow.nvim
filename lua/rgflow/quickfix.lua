@@ -330,4 +330,26 @@ function M.setup_adding(STATE)
     vim.fn.matchadd("Conceal", zs_ze, 12, -1, {conceal = "", window = qf_win_nr})
 end
 
+function M.get_current_qf_filenames() -- luacheck: ignore
+    local qf_list = vim.fn.getqflist()
+    local bufnrs = {}
+
+    for _, item in ipairs(qf_list) do
+        local bufnr = item.bufnr
+        if bufnr and not bufnrs[bufnr] then
+            bufnrs[bufnr] = true
+        end
+    end
+
+    -- Convert buffer numbers to filenames
+    local filenames = {}
+    for bufnr, _ in pairs(bufnrs) do
+        local bufname = vim.fn.bufname(bufnr)
+        if bufname and #bufname > 0 then
+            table.insert(filenames, bufname)
+        end
+    end
+    return filenames
+end
+
 return M

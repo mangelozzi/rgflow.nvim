@@ -191,7 +191,19 @@ local function setup_search(pattern, flags, path)
     table.insert(rg_args, pattern)
 
     -- 3. Add the search path
-    table.insert(rg_args, path)
+    if path == "qf" then
+        local qf_filesnames = quickfix.get_current_qf_filenames()
+        if #qf_filesnames == 0 then
+            return "No files in quickfix list"
+        end
+        for _, qf_filename in ipairs(qf_filesnames) do
+            table.insert(rg_args, qf_filename)
+        end
+        vim.print(rg_args)
+    else
+        table.insert(rg_args, path)
+    end
+
 
     local demo_cmd = get_demo_cmd(pattern, flags_list, path)
     set_state_searching(rg_args, demo_cmd, pattern, path)
@@ -212,7 +224,11 @@ function M.run(pattern, flags, path)
     end
 
     -- Global STATE used by the async job
-    setup_search(pattern, flags, path)
+    local errorMessage = setup_search(pattern, flags, path)
+    if errorMessage then
+        vim.api.nvim_err_writeln(errorMessage)
+        return
+    end
     -- Don't schedule the print, else may come after we finish!
     messages.set_status_msg(STATE, {print = true})
     spawn_job()

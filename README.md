@@ -5,6 +5,12 @@ The more you use this plugin, the better you become at using RipGrep from the CL
 Not simply a wrapper which could be replaced by a few lines of config.
 It's a very simple to use tool aspiring to the Unix philosophy.
 
+- A pop up window has 3 lines:
+    1. Flags/options
+    2. Pattern
+    3. Path
+- Use vim motions to edit them, then hit ENTER in normal mode to start the search
+
 3 second intro:
 
 <img src="https://github.com/mangelozzi/rgflow.nvim/assets/19764314/f75cd129-126b-457a-b9c5-ee5c14775069" alt="Core of what the plugin does">
@@ -54,27 +60,30 @@ Bonus note: Pressing `<TAB>` when the UI panel is open provides autocomplete for
   results in the QuickFix list
     - The more you use this plugin, the better you should become at using
       RipGrep from the CLI.
-      
-- Additional features:
-    - QuickFix:
-        - Delete results operator, e.g. `dd`, or `3dj` and friends
-        - Mark/unmark results operator, e.g. `<TAB>` to mark a result (can be marked more than once),
-          and `<S-TAB>` to unmark a result.
-        - The operators also have a visual range counter variants.
-    - RipGrep flags/options auto complete.
-    - Bring up RipGrep help in a buffer, so you can navigate/search it Vim style.
-    - Find search results asynchronously
-    - Populates the QuickFix windows in batches so it seems like it's none blocking.
-    - Highlights the search term, so even if `:noh` the search terms are still highlighted
-        - Even if used a regex as the search term
-    - You can set it's theme colours. However if you are someone you likes to 
-      change color scheme a lot, if you use the defaults they will update to 
-      some sane defaults based on the applied scheme.
-    - Searches are appended to your command history, so you can easily repeat previous searches
-        - E.g. `:<up>` 
 - I can never remember include/exclude globs, this helps.
-    - Also has autocomplete for RipGrep flags/options with descriptions
 - Tested on Linux and Windows
+      
+<h2 id="features">Features</h2>
+
+- Ripgrep
+    - Autocomplete for RipGrep flags/options with descriptions
+    - Bring up RipGrep help in a buffer, so you can navigate/search it Vim style.
+- QuickFix:
+    - Delete results operator, e.g. `dd`, or `3dj` and friends
+    - Mark/unmark results operator, e.g. `<TAB>` to mark a result (can be marked more than once),
+        and `<S-TAB>` to unmark a result.
+    - The operators also have a visual range counter variants.
+- Find search results asynchronously
+- Populates the QuickFix windows in batches so it seems like it's none blocking.
+- Highlights the search term, so even if `:noh` the search terms are still highlighted
+    - Even if used a regex as the search term
+- You can set it's theme colours. However if you are someone you likes to 
+    change color scheme a lot, if you use the defaults they will update to 
+    some sane defaults based on the applied scheme.
+- Searches are appended to your command history, so you can easily repeat previous searches
+    - E.g. `:<up>` 
+- To limit searching to use only the list of files from your current quickfix list, use the magic string `qf`.
+    - E.g. Say you searched for the pattern `foo` in `~/codebase`, and you get a list of result in your quickfix list, now you wish to search for the phrase `bar`, but only search in the files that already had `foo` in them. By setting the path to `qf`, the path will be replaced with a list of filenames generated from the current quickfix list.
 
 ## Installation
 
@@ -278,6 +287,7 @@ require("rgflow").setup(
         - `:cdo s/foo/bar/ | update`
 - Check out @towry-archived's integration with FZF-lua to use this plugin's UI to collect args for running a FZF search:
     - <https://github.com/mangelozzi/rgflow.nvim/issues/10>
+- Use the magic string `qf` to limit a search to files form the current qf list, as explained in the [Features section](#features),
 
 ## Contributing
 
