@@ -242,6 +242,16 @@ require("rgflow").setup(
 - The open function signature looks like this:
     - `require('rgflow').open(pattern, flags, path, options)`
 - The `options` parameter is a lua table with the following keys (for now only one key):
+    - `callback`
+        - Run a custom function once searching has been completed, e.g.
+        ```lua
+        vim.keymap.set("n", "<leader>RG", function()
+            require('rgflow').open(nil, nil, nil, {
+                callback = function() print('Callback ran... have a nice day!') end
+            })
+        end, {noremap = true})
+        ```
+
     - `custom_start` 
         - Useful for using Rgflow's UI to gather the search info, then call one's own tool.
         - The parameter is a function that receives the pattern/flags/path (3 x strings) from UI, and performs it's own custom function, e.g. within a keymap:

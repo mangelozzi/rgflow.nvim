@@ -303,6 +303,10 @@ function M.populate()
         vim.defer_fn(M.populate, 10)
     end
     setup_qf_height()
+    if final_run and STATE.callback then
+        -- If the user wishes to run a custom function after the search has completed
+        STATE.callback()
+    end
 end
 
 function M.setup_adding(STATE)

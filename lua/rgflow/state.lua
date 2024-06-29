@@ -23,6 +23,7 @@ local STATE = {
     ui_autocmd_group = vim.api.nvim_create_augroup("RgFlowUiGroup", {clear = true}),
     applied_settings = {},
     custom_start = nil, -- Instead of calling built in function `start`, call a user provided custom function with the pattern/flags/path
+    callback = nil,     -- Optional callback function to call after search has completed, a hook for customisation
 }
 
 M.get_state = function()

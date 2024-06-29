@@ -151,6 +151,7 @@ function M.open(pattern, flags, path, options)
     options = options or {}
     local STATE = get_state()
     STATE.custom_start = options.custom_start
+    STATE.callback = options.callback
 
     pattern = utils.trim_whitespace(pattern or '')
     if STATE.mode == modes.OPEN and vim.api.nvim_win_is_valid(STATE.wini) then
