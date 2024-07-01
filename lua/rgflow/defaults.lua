@@ -105,9 +105,20 @@ return {
         -- Open the quickfix window automatically after a serach
         open_qf_list = true,
 
+        -- Force quickfix window across the whole of the bottom screen when using vertical splits
+        -- "copen" opens the quickfix window under the current windows
+        -- Examples:
+        --   "copen" - Default way the quickfix window opens
+        --   "botright copen" - If vert split, across the full bottom edge, if horz split across the full right edge, see `:help botright`
+        --   "topleft copen" - If vert split, across the full top edge, if horz split across the full left edge, see `:help topleft`
+        --   "belowright copen" - Open to below/right of the current window, see `:help belowright`
+        --   "aboveleft copen" - Open to left/above of the current window, see `:help aboveleft`
+        --   `function() print('Hi'); vim.cmd('copen') end` - Run a custom function to open the quickfix window
+        open_qf_cmd_or_func = "copen",
+
         -- The QF window is set to the height of the number of matches, but bounded
         -- to be between a min of 3 and a max of this variable:
-        max_height_lines = 7,
+        max_height_lines = 8,
 
         -- By default a new search will create a search list after the current qf list
         -- Any lists afterwards will be lost

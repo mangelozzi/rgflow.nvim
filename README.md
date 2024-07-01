@@ -198,6 +198,9 @@ require("rgflow").setup(
         default_trigger_mappings = true,
         default_ui_mappings = true,
         default_quickfix_mappings = true,
+        quickfix = {
+            open_qf_cmd_or_func = "botright copen", -- Open the quickfix window across the full bottom edge
+        },
 
         -- WARNING !!! Glob for '-g *{*}' will not use .gitignore file: https://github.com/BurntSushi/ripgrep/issues/2252
         cmd_flags = ("--smart-case -g *.{*,py} -g !*.{min.js,pyc} --fixed-strings --no-fixed-strings --no-ignore -M 500"

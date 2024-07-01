@@ -319,7 +319,12 @@ function M.setup_adding(STATE)
     -- Refer to `:help setqflist`
     vim.fn.setqflist({}, " ", create_qf_options) -- If what is used then list is ignored
     if get_settings().quickfix.open_qf_list then
-        api.nvim_command("copen")
+        local open_qf_cmd_or_func = get_settings().quickfix.open_qf_cmd_or_func
+        if type(open_qf_cmd_or_func) == "function" then
+            open_qf_cmd_or_func()
+        else
+            api.nvim_command(open_qf_cmd_or_func)
+        end
     end
 
     apply_search_term_highlight()
