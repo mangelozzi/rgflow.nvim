@@ -11,29 +11,31 @@ M.zs_ze = "\030"
 M.RgFlowAutoCmdGroup = vim.api.nvim_create_augroup("RgFlowAutoCmdGroup", {clear = true})
 
 local func_name_to_keymap_opts = {
-    open_again       = { noremap = true, silent = true, desc = "open previous" },
-    open_blank       = { noremap = true, silent = true, desc = "open blank" },
-    open_paste       = { noremap = true, silent = true, desc = "open unnamed" },
-    open_cword       = { noremap = true, silent = true, desc = "open <cword>" },
-    open_cword_path  = { noremap = true, silent = true, desc = "open <cword> path=%:h" },
-    open_visual      = { noremap = true, silent = true, desc = "open visual" },
-    abort            = { noremap = true, silent = true, desc = "abort" },
-    print_cmd        = { noremap = true, silent = true, desc = "print command" },
 
-    auto_complete    = { noremap = true, silent = true, buffer = true, expr = true, desc = "autocomplete" },
-    start            = { noremap = true, silent = true, buffer = true, desc = "start" },
-    close            = { noremap = true, silent = true, buffer = true, desc = "close" },
-    show_rg_help     = { noremap = true, silent = true, buffer = true, desc = "help" },
-    parent_path      = { noremap = true, silent = true, buffer = true, desc = "parent path" },
-    nop              = { noremap = true, silent = true, buffer = true, desc = "nop" },
+    open_again       = { noremap = true, silent = true, desc = "Rgflow open previous" },
+    open_blank       = { noremap = true, silent = true, desc = "Rgflow open blank" },
+    open_paste       = { noremap = true, silent = true, desc = "Rgflow open unnamed" },
+    open_cword       = { noremap = true, silent = true, desc = "Rgflow open <cword>" },
+    open_cword_path  = { noremap = true, silent = true, desc = "Rgflow open <cword> path=%:h" },
+    open_visual      = { noremap = true, silent = true, desc = "Rgflow open visual" },
+    abort            = { noremap = true, silent = true, desc = "Rgflow abort" },
+    print_cmd        = { noremap = true, silent = true, desc = "Rgflow print command" },
+    print_status     = { noremap = true, silent = true, desc = "Rgflow print status" },
 
-    qf_delete        = { noremap = true, silent = true, buffer = true, desc = "QF del" },
-    qf_delete_line   = { noremap = true, silent = true, buffer = true, desc = "QF del line" },
-    qf_delete_visual = { noremap = true, silent = true, buffer = true, desc = "QF vis del" },
-    qf_mark          = { noremap = true, silent = true, buffer = true, desc = "QF mark" },
-    qf_mark_visual   = { noremap = true, silent = true, buffer = true, desc = "QF vis mark" },
-    qf_unmark        = { noremap = true, silent = true, buffer = true, desc = "QF unmark" },
-    qf_unmark_visual = { noremap = true, silent = true, buffer = true, desc = "QF vis unmark" },
+    auto_complete    = { noremap = true, silent = true, buffer = true, expr = true, desc = "Rgflow autocomplete" },
+    start            = { noremap = true, silent = true, buffer = true, desc = "Rgflow start" },
+    close            = { noremap = true, silent = true, buffer = true, desc = "Rgflow close" },
+    show_rg_help     = { noremap = true, silent = true, buffer = true, desc = "Rgflow help" },
+    parent_path      = { noremap = true, silent = true, buffer = true, desc = "Rgflow parent path" },
+    nop              = { noremap = true, silent = true, buffer = true, desc = "Rgflow nop" },
+
+    qf_delete        = { noremap = true, silent = true, buffer = true, desc = "Rgflow QF del" },
+    qf_delete_line   = { noremap = true, silent = true, buffer = true, desc = "Rgflow QF del line" },
+    qf_delete_visual = { noremap = true, silent = true, buffer = true, desc = "Rgflow QF vis del" },
+    qf_mark          = { noremap = true, silent = true, buffer = true, desc = "Rgflow QF mark" },
+    qf_mark_visual   = { noremap = true, silent = true, buffer = true, desc = "Rgflow QF vis mark" },
+    qf_unmark        = { noremap = true, silent = true, buffer = true, desc = "Rgflow QF unmark" },
+    qf_unmark_visual = { noremap = true, silent = true, buffer = true, desc = "Rgflow QF vis unmark" },
 }
 
 local function get_default_colors()

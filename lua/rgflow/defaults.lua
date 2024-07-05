@@ -34,7 +34,6 @@ return {
                 ["<leader>rp"] = "open_paste",      -- Open UI - search pattern = First line of unnamed register as the search pattern
                 ["<leader>rg"] = "open_cword",      -- Open UI - search pattern = <cword>
                 ["<leader>rw"] = "open_cword_path", -- Open UI - search pattern = <cword> and path = current file's directory
-                ["<leader>rs"] = "search",          -- Run a search with the current parameters
                 ["<leader>ra"] = "open_again",      -- Open UI - search pattern = Previous search pattern
                 ["<leader>rx"] = "abort",           -- Close UI / abort searching / abortadding results
                 ["<leader>rc"] = "print_cmd",       -- Print a version of last run rip grep that can be pasted into a shell
@@ -71,13 +70,13 @@ return {
         quickfix = {
             -- Normal
             n = {
-                ["d"] = "qf_delete",        -- QuickFix normal mode delete operator
-                ["dd"] = "qf_delete_line",  -- QuickFix delete a line from quickfix
-                ["<TAB>"] = "qf_mark",      -- QuickFix mark a line in the quickfix
-                ["<S-TAB>"] = "qf_unmark",  -- QuickFix unmark a line in the quickfix window
-                ["<BS>"]  = "nop", -- No operation
-                ["<C-^>"] = "nop", -- No operation - Probably don't want to switch to a buffer in the little quickfix window
-                ["<C-6>"] = "nop", -- No operation
+                ["d"]       = "qf_delete",      -- QuickFix normal mode delete operator
+                ["dd"]      = "qf_delete_line", -- QuickFix delete a line from quickfix
+                ["<TAB>"]   = "qf_mark",        -- QuickFix mark a line in the quickfix
+                ["<S-TAB>"] = "qf_unmark",      -- QuickFix unmark a line in the quickfix window
+                ["<BS>"]    = "nop",            -- No operation
+                ["<C-^>"]   = "nop",            -- No operation - Probably don't want to switch to a buffer in the little quickfix window
+                ["<C-6>"]   = "nop",            -- No operation
             },
             -- Visual/select mode maps
             x = {
