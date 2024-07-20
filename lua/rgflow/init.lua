@@ -143,4 +143,12 @@ M.print_status = function()
     vim.fn.feedkeys(vim.api.nvim_replace_termcodes(":messages<CR>", true, nil, true), "n")
 end
 
+M.cfilter = function()
+    vim.fn.feedkeys(":Cfilter ");
+end
+
+M.cfilterbang = function()
+    vim.fn.feedkeys(":Cfilter! ");
+end
+
 return M

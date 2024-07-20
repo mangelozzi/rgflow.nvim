@@ -36,6 +36,8 @@ local func_name_to_keymap_opts = {
     qf_mark_visual   = { noremap = true, silent = true, buffer = true, desc = "Rgflow QF vis mark" },
     qf_unmark        = { noremap = true, silent = true, buffer = true, desc = "Rgflow QF unmark" },
     qf_unmark_visual = { noremap = true, silent = true, buffer = true, desc = "Rgflow QF vis unmark" },
+    cfilter          = { noremap = true, silent = true, buffer = true, desc = "Rgflow QF :Cfilter", nowait = true },
+    cfilterbang      = { noremap = true, silent = true, buffer = true, desc = "Rgflow QF :Cfilter!" },
 }
 
 local function get_default_colors()

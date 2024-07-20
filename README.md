@@ -48,7 +48,7 @@ require('rgflow').setup(
 7. A search will run and populate the QuickFix window
 8. Press `dd` to delete a QuickFix entry, or select a visual range and press `d`
 9. Press `TAB` to mark a line and `<S-TAB>` to unmark a line, a line can be marked more than once
-
+10. Press `c`/`C` to `:Cfilter`/`:Cfilter` then type a pattern to filter the quickfix results.
 If you like this plugin please give it a :star:!
 
 Bonus note: Pressing `<TAB>` when the UI panel is open provides autocomplete for the line you are on (rip grep flags/cwords/filepaths)
@@ -285,7 +285,8 @@ require("rgflow").setup(
     - Although it comes with Neovim, it must first be enabled with: `vim.cmd('packadd cfilter')`
     - `:Cfilter foo` will limit your QuickFix results to only those that contain the phrase `foo`
     - `:Cfilter! foo` does the inverse, only those that **don't** contain `foo` are kept.
-        - Since the `change` operator is not valid in a quickfix window, I recommend adding these to `nvim/after/ftplugin/qf.lua` to map `c`/`C` to `:Cfilter`/`Cfilter!`:
+        - If you use the default Rgflow quickfix keymap, these will be mapped to `c`/`C`.
+        - If you wish to map it yourself you can do something like:
             ```
             vim.keymap.set("n", "c", ":Cfilter ",  {noremap = true, buffer = true, nowait = true, desc ="(c)filter"})
             vim.keymap.set("n", "C", ":Cfilter! ", {noremap = true, buffer = true, desc ="(C)filter!"})

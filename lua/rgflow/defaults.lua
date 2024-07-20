@@ -1,7 +1,7 @@
 -- Default settings
 return {
     -- Set the default rip grep flags and options for when running a search via
-    -- RgFlow. Once changed via the UI, the previous search flags are used for 
+    -- RgFlow. Once changed via the UI, the previous search flags are used for
     -- each subsequent search (until Neovim restarts).
     cmd_flags = "--smart-case --fixed-strings --no-fixed-strings --no-ignore --ignore --max-columns 500",
 
@@ -21,8 +21,8 @@ return {
 
     -- Since adding a lot of items to the quickfix window blocks the editor for
     -- a long time, we rather add search matches in batches, and then defer.
-    -- The larger the batch size, the faster search results will be added, but 
-    -- the more laggy the editor will be while adding results (defers less often). 
+    -- The larger the batch size, the faster search results will be added, but
+    -- the more laggy the editor will be while adding results (defers less often).
     batch_size = 500,
 
     mappings = {
@@ -77,6 +77,8 @@ return {
                 ["<BS>"]    = "nop",            -- No operation
                 ["<C-^>"]   = "nop",            -- No operation - Probably don't want to switch to a buffer in the little quickfix window
                 ["<C-6>"]   = "nop",            -- No operation
+                ["c"]       = "cfilter",        -- :Cfilter wrapper
+                ["C"]       = "cfilterbang",    -- :Cfilter! wrapper
             },
             -- Visual/select mode maps
             x = {
@@ -150,7 +152,7 @@ return {
     },
 
     -- ui_top_line_char = "▄",
-    --  Example chars: ━━━ ═══ ███  ▀▀▀ ▃▃▃   
+    --  Example chars: ━━━ ═══ ███  ▀▀▀ ▃▃▃
     ui_top_line_char = "▃",
 
 }
