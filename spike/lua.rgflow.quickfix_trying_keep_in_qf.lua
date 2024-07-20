@@ -36,7 +36,6 @@ local function calc_positions(line)
             if start then
                 -- Don't factor in the ze_zs into the column position of matches
                 local offset = match_cnt * zs_ze_len
-                print('zs_ze_len', zs_ze_len, 'offset', offset)
                 table.insert(positions, {zs = start - offset, ze = i - match_cnt - offset})
                 start = nil
             else
@@ -45,7 +44,6 @@ local function calc_positions(line)
         end
     end
     -- local clean_line = line:gsub(zs_ze, "")
-    print('---------------------got line')
     vim.print(line)
     print('positions')
     vim.print(positions)
