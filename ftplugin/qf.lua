@@ -33,7 +33,7 @@ vim.opt.completeopt = "menuone,noinsert,noselect"
 
 
 if qf_settings.disable_edit_alt_file then
-    vim.keymap.set({"", "!"}, "<C-^>", "<NOP>", {noremap = true})
-    vim.keymap.set({"", "!"}, "<C-S-^>", "<NOP>", {noremap = true})
-    vim.keymap.set({"", "!"}, "<C-6>", "<NOP>", {noremap = true})
+    vim.keymap.set({"", "!"}, "<C-^>", "<NOP>", {buffer = true, noremap = true})
+    vim.keymap.set({"", "!"}, "<C-S-^>", "<NOP>", {buffer = true, noremap = true})
+    vim.keymap.set({"", "!"}, "<C-6>", "<NOP>", {buffer = true, noremap = true})
 end
