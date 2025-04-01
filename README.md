@@ -84,6 +84,13 @@ Bonus note: Pressing `<TAB>` when the UI panel is open provides autocomplete for
     - E.g. `:<up>` 
 - To limit searching to use only the list of files from your current quickfix list, use the magic string `qf`.
     - E.g. Say you searched for the pattern `foo` in `~/codebase`, and you get a list of result in your quickfix list, now you wish to search for the phrase `bar`, but only search in the files that already had `foo` in them. By setting the path to `qf`, the path will be replaced with a list of filenames generated from the current quickfix list.
+- You can search for `foo` OR `bar` with a pattern like:
+    - `foo -e bar`
+    - `foo --regexp bar`
+    - `foo --regexp bar`
+    - `-e foo -e bar`
+    - `-e bar -e foo`
+    - `--regexp foo --regexp bar`
 
 ## Installation
 

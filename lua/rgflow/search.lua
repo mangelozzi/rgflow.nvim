@@ -182,13 +182,20 @@ local function setup_search(pattern, flags, path)
 
     -- 2. Add the pattern
     -- Check if pattern starts with '--' and prefix it with '\'
-    if string.sub(pattern, 1, 1) == '-' then
-        -- https://github.com/BurntSushi/ripgrep/issues/624
-        -- If search term starts with darh, then add a `--` token beforehand
-        table.insert(rg_args, '--')
+    local patterns = utils.split_search_terms(pattern)
+
+    for _, pat in pairs(patterns) do
+        if string.sub(pat, 1, 1) == '-' then
+            -- https://github.com/BurntSushi/ripgrep/issues/624
+            -- If search term starts with darh, then add a `--` token beforehand
+            table.insert(rg_args, '--')
+        end
+        -- Tokenisation handled by spawn - will handle if it contains multiple single and double quotes
+        if #patterns > 1 then
+            table.insert(rg_args, '-e')
+        end
+        table.insert(rg_args, pat)
     end
-    -- Tokenisation handled by spawn - will handle if it contains multiple single and double quotes
-    table.insert(rg_args, pattern)
 
     -- 3. Add the search path
     if path == "qf" then
@@ -199,7 +206,6 @@ local function setup_search(pattern, flags, path)
         for _, qf_filename in ipairs(qf_filesnames) do
             table.insert(rg_args, qf_filename)
         end
-        vim.print(rg_args)
     else
         table.insert(rg_args, path)
     end

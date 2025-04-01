@@ -100,6 +100,62 @@ function M.get_qf_size()
     return vim.fn.getqflist({size = true}).size
 end
 
+-- Splits an input string into search segments.
+-- Example:
+--   "something -e foo something --regexp bar something"
+-- returns:
+--   { "something", "foo something", "bar something" }
+--
+--   "prefix -e foo"
+-- returns:
+--   { "prefix", "foo" }
+--
+--   "foo"
+-- returns:
+--   { "foo" }
+function M.split_search_terms(input)
+    -- First, split the string into tokens using whitespace.
+    local tokens = {}
+    for token in string.gmatch(input, "%S+") do
+        table.insert(tokens, token)
+    end
+
+    local results = {}        -- array to hold the final segments
+    local current_tokens = {} -- accumulator for the current segment
+
+    -- Helper to flush the current segment into the results (if not empty)
+    local function flush_current()
+        if #current_tokens > 0 then
+        table.insert(results, table.concat(current_tokens, " "))
+        current_tokens = {}
+        end
+    end
+
+    local i = 1
+    while i <= #tokens do
+        local token = tokens[i]
+        if token == "-e" or token == "--regexp" then
+        -- When a flag is found, flush the tokens accumulated so far.
+        flush_current()
+        -- Skip the flag token itself.
+        i = i + 1
+        -- Now, collect all tokens after the flag until the next flag or end.
+        while i <= #tokens and tokens[i] ~= "-e" and tokens[i] ~= "--regexp" do
+            table.insert(current_tokens, tokens[i])
+            i = i + 1
+        end
+        flush_current()  -- flush the segment collected after the flag
+        else
+        -- Otherwise, add tokens to the current segment.
+        table.insert(current_tokens, token)
+        i = i + 1
+        end
+    end
+
+    -- Flush any tokens left in the accumulator.
+    flush_current()
+    return results
+end
 
 -- Used for debugging
 -- Function to get a specific line from a buffer in Neovim
