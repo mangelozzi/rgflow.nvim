@@ -50,7 +50,7 @@ local function get_default_colors()
         -- appending cant see the insert cursor
         RgFlowInputBg       = { link='NormalFloat' },
         RgFlowInputFlags    = { link='NormalFloat' },
-        RgFlowInputPattern  = { link='FloatTitle' },
+        RgFlowInputPattern  = { link='Constant' },
         RgFlowInputPath     = { link='NormalFloat' },
     }
 end
